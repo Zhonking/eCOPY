@@ -1,0 +1,51 @@
+{
+  "name": "ecopy",
+  "version": "1.3.0",
+  "description": "eCOPY — professional camera-card offload by XUEZHIZHONG, with multi-target verification and Safe-to-Format",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "author": "XUEZHIZHONG 薛智中",
+  "scripts": {
+    "start": "node src/backend/server.js",
+    "electron": "electron .",
+    "dist": "electron-builder",
+    "icons": "node scripts/make-icons.js",
+    "make-cards": "node scripts/make-test-cards.js",
+    "test": "node scripts/selftest.js"
+  },
+  "engines": {
+    "node": ">=18.15"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.xuezhizhong.ecopy",
+    "productName": "eCOPY",
+    "asar": false,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "public/**/*",
+      "resources/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "eCOPY"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# App runtime data (jobs, reports, settings)
+.ecopy/
+
+# Test fixtures (sandbox cards & targets, 400MB+)
+.sandbox/
+
+# IDE / tooling local config
+.trae/
+
+# Keep build/icon.ico (electron-builder resources) but ignore temp artifacts
+build/*
+!build/icon.ico
+
+# Logs & temp
+*.log
+*.part
