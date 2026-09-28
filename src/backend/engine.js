@@ -51,19 +51,46 @@ class Engine extends EventEmitter {
     const template = input.template || settings.template;
     const project = input.project || 'Untitled';
 
-    if (!input.sourcePaths?.length) throw new Error('At least one source is required');
+    if (!input.sourcePaths?.length && !input.sources?.length) {
+      throw new Error('At least one source is required');
+    }
     if (!input.targetPaths?.length) throw new Error('At least one target is required');
 
+    // Sources may carry a per-source shooting-date filter:
+    //   sources: [{ path, dates: ['2026-09-25', …] }]
+    const specs = (
+      input.sources?.length
+        ? input.sources
+        : input.sourcePaths.map((p) => ({ path: p }))
+    ).map((s) => (typeof s === 'string' ? { path: s } : s));
+
     const sources = [];
-    for (const sp of input.sourcePaths) {
-      const clean = String(sp).trim();
+    for (const spec of specs) {
+      const clean = String(spec.path).trim();
       let scanned;
       try {
         scanned = await scanSource(clean);
       } catch (e) {
         throw new Error(`Cannot read source "${clean}": ${e.message}`);
       }
-      if (!scanned.files.length) throw new Error(`Source "${clean}" is empty`);
+      let keptFiles = scanned.files;
+      let keptClips = scanned.clips;
+      if (spec.dates?.length) {
+        const sel = new Set(spec.dates);
+        keptClips = scanned.clips.filter((c) => c.shootDate != null && sel.has(c.shootDate));
+        // Sidecars travel with their clip even if their own timestamp differs
+        // (copied/generated metadata can carry a later date).
+        const keptSidecars = new Set();
+        for (const c of keptClips) {
+          for (const sb of c.sidecars || []) keptSidecars.add(sb);
+        }
+        // Structural/metadata files without a shoot date are always kept.
+        keptFiles = scanned.files.filter(
+          (f) => f.shootDate == null || sel.has(f.shootDate) || keptSidecars.has(f.rel)
+        );
+      }
+      if (!keptFiles.length) throw new Error(`Source "${clean}" is empty`);
+      const keptBytes = keptFiles.reduce((a, f) => a + f.size, 0);
       const source = {
         id: uid(),
         path: clean,
@@ -72,10 +99,10 @@ class Engine extends EventEmitter {
         cameraLabel: scanned.cameraLabel,
         model: scanned.model,
         reel: scanned.reel,
-        fileCount: scanned.fileCount,
-        totalBytes: scanned.totalBytes,
-        clips: scanned.clips,
-        files: scanned.files.map((f) => ({
+        fileCount: keptFiles.length,
+        totalBytes: keptBytes,
+        clips: keptClips,
+        files: keptFiles.map((f) => ({
           rel: f.rel,
           size: f.size,
           sourceHash: null,

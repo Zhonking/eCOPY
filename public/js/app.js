@@ -1,12 +1,12 @@
 // eCOPY app bootstrap: splash, onboarding, i18n, routing, SSE, palette, notifications.
-import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=26';
-import { api } from './api.js?v=26';
-import { renderWizard, resetWizard } from './wizard.js?v=26';
-import { renderJobs } from './joblist.js?v=26';
-import { renderJob, destroyWarp } from './jobview.js?v=26';
-import { renderDisks } from './disksview.js?v=26';
-import { renderSettings } from './settingsview.js?v=26';
-import { t, setLang, LANG_OPTIONS } from './i18n.js?v=26';
+import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=27';
+import { api } from './api.js?v=27';
+import { renderWizard, resetWizard } from './wizard.js?v=27';
+import { renderJobs } from './joblist.js?v=27';
+import { renderJob, destroyWarp } from './jobview.js?v=27';
+import { renderDisks } from './disksview.js?v=27';
+import { renderSettings } from './settingsview.js?v=27';
+import { t, setLang, LANG_OPTIONS } from './i18n.js?v=27';
 
 const appState = { settings: {}, volumes: [], physical: [], jobs: [] };
 window.__appState = appState;
@@ -297,7 +297,8 @@ function connectSSE() {
     } else if (msg.kind === 'card-inserted') {
       await refreshState();
       const label = msg.label || msg.mount;
-      toast(t('notify.cardInserted'), `${label} — ${t('notify.cardInsertedBody')}`, 'info', 6000);
+      const brandPart = msg.cameraLabel ? `${msg.cameraLabel} · ` : '';
+      toast(t('notify.cardInserted'), `${brandPart}${label} — ${t('notify.cardInsertedBody')}`, 'info', 6000);
       systemNotify(t('notify.cardInserted'), label);
       if (parseHash().view === 'wizard') route();
     } else if (msg.kind === 'log') {

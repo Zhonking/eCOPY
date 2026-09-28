@@ -1,8 +1,8 @@
 // Three-step offload wizard: sources → targets/template → review & start.
-import { h, icon, clear, formatBytes, toast } from './lib.js?v=26';
-import { api } from './api.js?v=26';
-import { openPathBrowser } from './browser.js?v=26';
-import { t } from './i18n.js?v=26';
+import { h, icon, clear, formatBytes, toast } from './lib.js?v=27';
+import { api } from './api.js?v=27';
+import { openPathBrowser } from './browser.js?v=27';
+import { t } from './i18n.js?v=27';
 
 let state = null;
 let starting = false;
@@ -77,7 +77,64 @@ function draw(mount, appState) {
 
 // ---------- step 1: sources ----------
 
+// Totals honoring the per-source shooting-date selection.
+function selectedTotals(src) {
+  if (!src._dateSel) return { fileCount: src.fileCount, totalBytes: src.totalBytes };
+  let count = 0;
+  let bytes = 0;
+  for (const f of src.files || []) {
+    if (f.shootDate == null || src._dateSel.has(f.shootDate)) {
+      count += 1;
+      bytes += f.size;
+    }
+  }
+  return { fileCount: count, totalBytes: bytes };
+}
+
+function toggleDate(src, date, appState) {
+  if (!src._dateSel) src._dateSel = new Set(src.dates.map((g) => g.date));
+  const sel = src._dateSel;
+  if (sel.has(date)) {
+    if (sel.size > 1) sel.delete(date); // never allow an empty selection
+  } else {
+    sel.add(date);
+  }
+  renderWizard(document.getElementById('content'), appState);
+}
+
+function dateFilterRow(src, appState) {
+  if (!src.dates?.length || src.dates.length < 2) return null;
+  if (!src._dateSel) src._dateSel = new Set(src.dates.map((g) => g.date));
+  const totalMedia = src.dates.reduce((a, g) => a + g.files, 0);
+  const pickedMedia = src.dates
+    .filter((g) => src._dateSel.has(g.date))
+    .reduce((a, g) => a + g.files, 0);
+  return h('div', { class: 'date-filter' }, [
+    h('div', { class: 'df-head' }, [
+      h('span', {}, t('wiz.dateFilter')),
+      h('span', { class: 'df-count' }, t('wiz.datesSel', { n: pickedMedia, total: totalMedia }))
+    ]),
+    h('div', { class: 'df-chips' },
+      src.dates.map((g) =>
+        h('button', {
+          class: 'date-chip' + (src._dateSel.has(g.date) ? ' on' : ''),
+          title: g.date,
+          onClick: (e) => {
+            e.stopPropagation();
+            toggleDate(src, g.date, appState);
+          }
+        }, [
+          icon('check', 11),
+          h('span', { class: 'dc-date' }, g.date),
+          h('span', { class: 'dc-meta' }, `${g.files} · ${formatBytes(g.bytes)}`)
+        ])
+      )
+    )
+  ]);
+}
+
 function sourceCard(src, appState) {
+  const totals = selectedTotals(src);
   return h('div', { class: 'pick-card selected' }, [
     h('div', { class: 'pc-top' }, [
       h('span', { class: 'brand-tag' }, src.cameraLabel),
@@ -92,9 +149,10 @@ function sourceCard(src, appState) {
     ]),
     h('div', { class: 'pc-meta' }, [
       h('span', {}, `${t('job.reel')} ${src.reel}`),
-      h('span', {}, `${src.fileCount} ${t('job.files')}`),
-      h('span', {}, formatBytes(src.totalBytes))
+      h('span', {}, `${totals.fileCount} ${t('job.files')}`),
+      h('span', {}, formatBytes(totals.totalBytes))
     ]),
+    dateFilterRow(src, appState),
     h('div', { class: 'pc-path' }, src.path)
   ]);
 }
@@ -228,8 +286,9 @@ function stepTwo() {
 // ---------- step 3: review ----------
 
 function stepThree() {
-  const totalBytes = state.sources.reduce((a, s) => a + s.totalBytes, 0);
-  const totalFiles = state.sources.reduce((a, s) => a + s.fileCount, 0);
+  const selTotals = state.sources.map(selectedTotals);
+  const totalBytes = selTotals.reduce((a, t0) => a + t0.totalBytes, 0);
+  const totalFiles = selTotals.reduce((a, t0) => a + t0.fileCount, 0);
 
   const wrap = h('div', { class: 'grid', style: { gridTemplateColumns: '1fr 340px' } });
 
@@ -322,7 +381,11 @@ async function startJob() {
       algorithm: state.algorithm,
       template: state.template,
       conflictPolicy: state.conflictPolicy,
-      sourcePaths: state.sources.map((s) => s.path),
+      sources: state.sources.map((s) => {
+        // Omit dates entirely when everything is selected.
+        if (!s._dateSel || s._dateSel.size === s.dates.length) return { path: s.path };
+        return { path: s.path, dates: [...s._dateSel] };
+      }),
       targetPaths: state.targets
     });
     toast(t('wiz.jobCreated'), t('wiz.starting'), 'info', 3000);

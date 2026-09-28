@@ -108,14 +108,23 @@ export async function ejectVolume(letterOrMount) {
 // Poll volumes; invoke callback(volumes, added[]) when the set changes.
 export function watchVolumes(onChange, intervalMs = 2000) {
   let known = new Set();
+  let primed = false;
   let stopped = false;
 
   async function tick() {
     if (stopped) return;
     const vols = await listVolumes();
     const now = new Set(vols.map((v) => v.mount));
+    // First tick is the baseline snapshot — every existing volume would
+    // otherwise look "newly inserted" and flood card notifications.
+    if (!primed) {
+      primed = true;
+      known = now;
+      if (onChange) onChange(vols, []);
+      return;
+    }
     const added = vols.filter((v) => !known.has(v.mount));
-    const changed = !known.size || added.length > 0 || now.size !== known.size;
+    const changed = added.length > 0 || now.size !== known.size;
     known = now;
     if (changed && onChange) onChange(vols, added);
   }

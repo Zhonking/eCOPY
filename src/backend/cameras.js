@@ -42,6 +42,65 @@ async function walk(root) {
   return out.map(normalizeRel);
 }
 
+// Shallow walk (files AND directories), depth-capped — used to quickly
+// recognise a camera card without hashing or reading whole volumes.
+async function walkShallow(root, maxDepth = 3) {
+  const out = [];
+  async function rec(dir, rel, depth) {
+    let entries;
+    try {
+      entries = await readdir(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      const relPath = rel ? `${rel}/${e.name}` : e.name;
+      if (e.isDirectory()) {
+        out.push(relPath);
+        if (depth < maxDepth) await rec(`${dir}/${e.name}`, relPath, depth + 1);
+      } else if (e.isFile()) {
+        out.push(relPath);
+      }
+    }
+  }
+  await rec(root, '', 1);
+  return out.map(normalizeRel);
+}
+
+// Fast, non-blocking camera-card probe for a freshly mounted volume.
+// Never throws and self-times-out so a slow/spinning-up reader can't
+// stall volume watching.
+export async function probeCard(rootPath, timeoutMs = 4000) {
+  const fail = {
+    path: rootPath,
+    isCard: false,
+    brand: 'GENERIC',
+    structure: 'UNKNOWN',
+    cameraLabel: CAMERA_INFO.GENERIC.label,
+    color: CAMERA_INFO.GENERIC.color
+  };
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(null), timeoutMs);
+  });
+  const work = (async () => {
+    const paths = await walkShallow(rootPath.replace(/[\\/]+$/, ''), 3);
+    const det = detectCamera(paths);
+    const info = CAMERA_INFO[det.brand] || CAMERA_INFO.GENERIC;
+    return {
+      path: rootPath,
+      isCard: det.structure !== 'UNKNOWN',
+      brand: det.brand,
+      structure: det.structure,
+      cameraLabel: info.label,
+      color: info.color
+    };
+  })();
+  const result = await Promise.race([work, timeout]);
+  clearTimeout(timer);
+  return result || fail;
+}
+
 function lowerSet(paths) {
   return paths.map((p) => p.toLowerCase());
 }
@@ -52,6 +111,8 @@ export function detectCamera(paths) {
   const hasDir = (dir) => p.some((x) => x === dir || x.startsWith(dir + '/'));
 
   if (has((x) => x.endsWith('.r3d'))) return { brand: 'RED', structure: 'RED_R3D' };
+  // RED card layout: DCIM/101RED01/<clip>.RDC directory (may appear before .R3D in a shallow walk).
+  if (has((x) => /\.rdc$/.test(x))) return { brand: 'RED', structure: 'RED_RDC' };
   if (has((x) => x.endsWith('.braw'))) return { brand: 'BLACKMAGIC', structure: 'BMD_BRAW' };
   if (has((x) => x.endsWith('.crm'))) return { brand: 'CANON', structure: 'CANON_CRM' };
   if (hasDir('avf') || hasDir('arrimedia') || has((x) => x.endsWith('.ari'))) {
@@ -157,6 +218,36 @@ function parseSonyClip(name) {
   return m ? { take: String(parseInt(m[1], 10)) } : null;
 }
 
+// Determine the shooting date (YYYY-MM-DD) of a file.
+// Prefer the date encoded in the clip name:
+//   ARRI:   A001C001_21090101_C001.mxf  → YYMMDD (+ camera-id tail)
+//           A001C001_20210901_C001      → YYYYMMDD (ALEXA 35+ timestamp)
+//   BMD:    A001_C001_0912M0.braw       → MMDD (year from mtime)
+//   Canon:  A001_C001_0912KX.CRM        → MMDD (year from mtime)
+//   RED:    A001_C001_0501X23.R3D       → MMDD (year from mtime)
+// Fall back to the file modification date; null only when neither exists.
+export function shootDateOf(relPath, mtimeISO) {
+  const name = basename(relPath);
+  // ARRI extended timestamp (ALEXA 35+): ..._20210901_... — YYYYMMDD
+  let m = name.match(
+    /[_\-]((?:19|20|21)\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])(?=[_\-.]|$)/
+  );
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  // ARRI classic: ..._21090101_C001 / ..._210421_RN9O — first 6 digits are
+  // YYMMDD, followed by an optional camera-id tail, bounded by _ - . or end.
+  m = name.match(
+    /[_\-](\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d*(?=[_\-.]|$)/
+  );
+  if (m) return `20${m[1]}-${m[2]}-${m[3]}`;
+  // BMD/Canon: ..._0912M0.braw — MMDD + letter code. RED: ..._0501X23.R3D.
+  m = name.match(/[_\-](\d{2})(\d{2})[A-Z]\d*\./i);
+  if (m) {
+    const year = mtimeISO ? mtimeISO.slice(0, 4) : String(new Date().getFullYear());
+    return `${year}-${m[1]}-${m[2]}`;
+  }
+  return mtimeISO ? mtimeISO.slice(0, 10) : null;
+}
+
 function isMedia(relPath) {
   const dot = relPath.lastIndexOf('.');
   return dot >= 0 && MEDIA_EXTS.has(relPath.slice(dot).toLowerCase());
@@ -181,15 +272,17 @@ export async function scanSource(rootPath, volumeLabel = null) {
   for (const rel of paths) {
     const full = `${rootPath.replace(/[\\/]+$/, '')}/${rel}`;
     let size = 0;
+    let mtimeISO = null;
     try {
       const s = await stat(full);
       size = s.size;
+      mtimeISO = s.mtime.toISOString();
     } catch {
       /* ignore */
     }
     totalBytes += size;
-    fileStats.push({ rel, size });
-    if (isMedia(rel)) clips.push({ rel, size });
+    fileStats.push({ rel, size, mtime: mtimeISO, shootDate: shootDateOf(rel, mtimeISO) });
+    if (isMedia(rel)) clips.push({ rel, size, mtime: mtimeISO });
   }
 
   // Read sidecars for each clip (same basename or name-contained siblings).
@@ -215,6 +308,7 @@ export async function scanSource(rootPath, volumeLabel = null) {
       (detection.brand === 'SONY' ? parseSonyClip(stem) : {}) ||
       {};
     clip.name = stem;
+    clip.shootDate = shootDateOf(clip.rel, clip.mtime);
     clip.model = merged.model || null;
     clip.serial = merged.serial || null;
     clip.reel = merged.reel || parsed.reel || null;
@@ -240,6 +334,17 @@ export async function scanSource(rootPath, volumeLabel = null) {
   const models = clips.map((c) => c.model).filter(Boolean);
   const detectedAt = new Date().toISOString();
 
+  // Group media clips by shooting date — drives the wizard's date filter.
+  const dateMap = new Map();
+  for (const c of clips) {
+    if (!c.shootDate) continue;
+    const g = dateMap.get(c.shootDate) || { date: c.shootDate, files: 0, bytes: 0 };
+    g.files += 1;
+    g.bytes += c.size;
+    dateMap.set(c.shootDate, g);
+  }
+  const dates = [...dateMap.values()].sort((a, b) => a.date.localeCompare(b.date));
+
   return {
     path: rootPath,
     volume: volumeLabel || basename(rootPath),
@@ -252,6 +357,7 @@ export async function scanSource(rootPath, volumeLabel = null) {
     totalBytes,
     clips,
     files: fileStats,
+    dates,
     detectedAt
   };
 }

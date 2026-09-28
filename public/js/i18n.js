@@ -12,8 +12,10 @@ export function getLang() {
   return lang;
 }
 
-export function t(key) {
-  return DICTS[lang]?.[key] ?? DICTS.en[key] ?? key;
+export function t(key, params) {
+  let s = DICTS[lang]?.[key] ?? DICTS.en[key] ?? key;
+  if (params) s = s.replace(/\{(\w+)\}/g, (m, k) => (params[k] != null ? params[k] : m));
+  return s;
 }
 
 export const LANG_OPTIONS = [
@@ -91,6 +93,8 @@ const DICTS = {
     'wiz.startFail': '无法启动任务',
     'wiz.remove': '移除',
     'wiz.algoXxh64': 'xxHash64（快速，推荐）',
+    'wiz.dateFilter': '按拍摄日期',
+    'wiz.datesSel': '已选 {n}/{total} 个素材',
 
     // browser drawer
     'br.selectFolder': '选择文件夹',
@@ -307,6 +311,8 @@ const DICTS = {
     'wiz.startFail': 'ジョブを開始できません',
     'wiz.remove': '削除',
     'wiz.algoXxh64': 'xxHash64（高速・推奨）',
+    'wiz.dateFilter': '撮影日で選択',
+    'wiz.datesSel': '{n}/{total} クリップ選択中',
 
     'br.selectFolder': 'フォルダを選択',
     'br.cannotOpen': '開けません',
@@ -516,6 +522,8 @@ const DICTS = {
     'wiz.startFail': 'Could not start job',
     'wiz.remove': 'Remove',
     'wiz.algoXxh64': 'xxHash64 (fast, recommended)',
+    'wiz.dateFilter': 'By shooting date',
+    'wiz.datesSel': '{n}/{total} clips selected',
 
     'br.selectFolder': 'Select folder',
     'br.cannotOpen': 'Cannot open',

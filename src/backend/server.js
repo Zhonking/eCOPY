@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { engine } from './engine.js';
-import { scanSource } from './cameras.js';
+import { scanSource, probeCard } from './cameras.js';
 import {
   listVolumes,
   listPhysical,
@@ -49,15 +49,32 @@ engine.on('progress', (id) => sseSend({ kind: 'progress', id }));
 engine.on('job', (id) => sseSend({ kind: 'job', id }));
 engine.on('log', (id, entry) => sseSend({ kind: 'log', id, entry }));
 
-watchVolumes((vols, added) => {
+watchVolumes(async (vols, added) => {
   sseSend({ kind: 'volumes' });
+  // Only volumes that look like camera cards raise a card-inserted event,
+  // enriched with the detected camera brand.
   for (const a of added) {
-    sseSend({
-      kind: 'card-inserted',
-      mount: a.mount,
-      label: a.label,
-      free: a.free
-    });
+    try {
+      let info = await probeCard(a.path);
+      // Readers can take a moment to spin up; one delayed retry prevents a
+      // slow first readdir from permanently missing the card event.
+      if (!info.isCard) {
+        await new Promise((r) => setTimeout(r, 1500));
+        info = await probeCard(a.path);
+      }
+      if (info.isCard) {
+        sseSend({
+          kind: 'card-inserted',
+          mount: a.mount,
+          label: a.label,
+          free: a.free,
+          brand: info.brand,
+          cameraLabel: info.cameraLabel
+        });
+      }
+    } catch {
+      /* probing is best-effort */
+    }
   }
 });
 

@@ -10,6 +10,17 @@ const { pathToFileURL } = require('node:url');
 const PORT = 5218;
 const ICON = path.join(__dirname, '..', 'resources', 'icon.ico');
 
+// Last-resort diagnostics: the backend runs in the main process, and an
+// uncaught error there would otherwise exit silently with no evidence.
+function crashLog(kind, err) {
+  try {
+    const line = `${new Date().toISOString()} ${kind}: ${err?.stack || err}\n`;
+    fs.appendFileSync(path.join(app.getPath('userData'), 'crash.log'), line);
+  } catch {}
+}
+process.on('uncaughtException', (err) => crashLog('uncaughtException', err));
+process.on('unhandledRejection', (err) => crashLog('unhandledRejection', err));
+
 // Keep taskbar grouping/icon consistent with the packaged exe.
 app.setAppUserModelId('com.xuezhizhong.ecopy');
 
