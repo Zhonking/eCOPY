@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'" />
+<title>eCOPY · 拷卡进度</title>
+<style>
+  :root {
+    --bg: rgba(10, 14, 22, 0.92);
+    --bg-soft: rgba(20, 28, 42, 0.85);
+    --accent: #3b82f6;
+    --accent-soft: rgba(59, 130, 246, 0.18);
+    --fg: #e8eef7;
+    --muted: #8a93a6;
+    --ok: #22c55e;
+    --warn: #f59e0b;
+    --border: rgba(255,255,255,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: transparent;
+    color: var(--fg);
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .win {
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+  }
+  .titlebar {
+    -webkit-app-region: drag;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px 6px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+  }
+  .brand .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .titlebar .actions {
+    -webkit-app-region: no-drag;
+    display: flex;
+    gap: 4px;
+  }
+  .tbtn {
+    width: 22px; height: 22px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .tbtn:hover { background: rgba(255,255,255,0.1); color: var(--fg); }
+  .tbtn.close:hover { background: #ef4444; color: #fff; }
+
+  .body { padding: 4px 14px 10px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .headline {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .headline .label { font-size: 13px; color: var(--muted); }
+  .headline .pct {
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--fg);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .headline .pct .unit { font-size: 16px; color: var(--muted); margin-left: 2px; }
+  .bar {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-soft);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .bar > div {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), #60a5fa);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .stats .ok { color: var(--ok); }
+  .stats .warn { color: var(--warn); }
+  .foot {
+    display: flex;
+    gap: 6px;
+    padding: 0 14px 12px;
+  }
+  .fbtn {
+    flex: 1;
+    height: 26px;
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--fg);
+    border-radius: 7px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .fbtn:hover { background: rgba(59,130,246,0.15); border-color: var(--accent); }
+  .fbtn.primary { background: var(--accent-soft); border-color: var(--accent); color: #cfe0ff; }
+  .fbtn.primary:hover { background: var(--accent); color: #fff; }
+  .idle { text-align: center; color: var(--muted); font-size: 12px; padding: 18px 0; }
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="titlebar">
+    <div class="brand"><span class="dot"></span><span>eCOPY · 拷卡进度</span></div>
+    <div class="actions">
+      <button class="tbtn" id="btnMin" title="隐藏悬浮窗">—</button>
+      <button class="tbtn" id="btnClose" title="退出应用">×</button>
+    </div>
+  </div>
+  <div class="body" id="body">
+    <div class="idle" id="idle">暂无运行中的拷卡任务</div>
+    <div id="active" style="display:none; gap:8px; flex-direction:column;">
+      <div class="headline">
+        <span class="label" id="jobLabel">0 个任务运行中</span>
+        <span class="pct"><span id="pct">0.0</span><span class="unit">%</span></span>
+      </div>
+      <div class="bar"><div id="barFill"></div></div>
+      <div class="stats">
+        <span id="speed">0 B/s</span>
+        <span id="eta">—</span>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <button class="fbtn primary" id="btnRestore">显示主窗口</button>
+    <button class="fbtn" id="btnQuit">退出</button>
+  </div>
+</div>
+
+<script>
+  const apiBase = 'http://localhost:5218';
+  const $ = (id) => document.getElementById(id);
+  let timer = null;
+
+  function fmtBytes(b) {
+    if (!b) return '0 B';
+    const u = ['B','KB','MB','GB','TB'];
+    let i = 0, v = b;
+    while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+    return v.toFixed(i === 0 ? 0 : 1) + ' ' + u[i];
+  }
+  function fmtEta(sec) {
+    if (sec == null || !isFinite(sec) || sec <= 0) return '—';
+    if (sec < 60) return '约 ' + Math.ceil(sec) + ' 秒';
+    const m = Math.floor(sec / 60), s = Math.round(sec % 60);
+    if (m < 60) return '约 ' + m + ' 分 ' + s + ' 秒';
+    const h = Math.floor(m / 60), mm = m % 60;
+    return '约 ' + h + ' 时 ' + mm + ' 分';
+  }
+
+  async function tick() {
+    try {
+      const r = await fetch(apiBase + '/api/aggregate');
+      if (!r.ok) throw new Error('bad status');
+      const d = await r.json();
+      if (d.running > 0) {
+        $('idle').style.display = 'none';
+        $('active').style.display = 'flex';
+        $('jobLabel').textContent = d.running + ' 个任务运行中';
+        $('pct').textContent = d.pct.toFixed(1);
+        $('barFill').style.width = d.pct.toFixed(1) + '%';
+        $('speed').textContent = fmtBytes(d.speedBps) + '/s';
+        $('eta').textContent = fmtEta(d.remain);
+      } else {
+        $('idle').style.display = 'block';
+        $('active').style.display = 'none';
+        $('idle').textContent = '所有任务已完成';
+      }
+    } catch {
+      $('idle').style.display = 'block';
+      $('active').style.display = 'none';
+      $('idle').textContent = '连接中…';
+    }
+  }
+
+  $('btnRestore').addEventListener('click', () => { window.ecopy && window.ecopy.restoreMain(); });
+  $('btnMin').addEventListener('click', () => { window.ecopy && window.ecopy.hideFloating(); });
+  $('btnQuit').addEventListener('click', () => {
+    if (confirm('确定退出 eCOPY？运行中的拷卡任务将被停止。')) {
+      window.ecopy && window.ecopy.quitNow();
+    }
+  });
+
+  tick();
+  timer = setInterval(tick, 800);
+</script>
+</body>
+</html>

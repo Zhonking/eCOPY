@@ -166,6 +166,11 @@ async function handleApi(req, res, url) {
     return sendJSON(res, 200, { settings, volumes, physical, jobs: slimJobs });
   }
 
+  // Aggregate progress across all running jobs — used by the floating window.
+  if (p === '/api/aggregate' && method === 'GET') {
+    return sendJSON(res, 200, engine.getAggregate());
+  }
+
   if (p === '/api/browse' && method === 'GET') {
     const dir = q.get('dir') || os.homedir();
     try {

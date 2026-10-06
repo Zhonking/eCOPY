@@ -1,12 +1,12 @@
 // eCOPY app bootstrap: splash, onboarding, i18n, routing, SSE, palette, notifications.
-import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=28';
-import { api } from './api.js?v=28';
-import { renderWizard, resetWizard } from './wizard.js?v=28';
-import { renderJobs } from './joblist.js?v=28';
-import { renderJob, destroyWarp } from './jobview.js?v=28';
-import { renderDisks } from './disksview.js?v=28';
-import { renderSettings } from './settingsview.js?v=28';
-import { t, setLang, LANG_OPTIONS } from './i18n.js?v=28';
+import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=29';
+import { api } from './api.js?v=29';
+import { renderWizard, resetWizard } from './wizard.js?v=29';
+import { renderJobs } from './joblist.js?v=29';
+import { renderJob, destroyWarp } from './jobview.js?v=29';
+import { renderDisks } from './disksview.js?v=29';
+import { renderSettings } from './settingsview.js?v=29';
+import { t, setLang, LANG_OPTIONS } from './i18n.js?v=29';
 
 const appState = { settings: {}, volumes: [], physical: [], jobs: [] };
 window.__appState = appState;
@@ -421,6 +421,14 @@ document.querySelectorAll('.nav-item').forEach((b) => {
 });
 
 // ---------------- notification center ----------------
+
+document.getElementById('bgBtn').addEventListener('click', async () => {
+  const n = window.ecopy && (await window.ecopy.runningCount());
+  if (n > 0) {
+    toast(t('notify.bgMode'), t('notify.bgModeBody'), 'info', 4000);
+  }
+  if (window.ecopy) window.ecopy.backgroundMode();
+});
 
 document.getElementById('bellBtn').addEventListener('click', () => {
   const body = h('div');

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>eCOPY — Professional Card Offload</title>
-  <link rel="stylesheet" href="/css/app.css?v=28" />
+  <link rel="stylesheet" href="/css/app.css?v=29" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%232fe07f'/><path d='M9 16l5 5 9-11' stroke='%230b0e13' stroke-width='3.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
 </head>
 <body>
@@ -15,7 +15,7 @@
         <svg width="20" height="20" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#2fe07f"/><path d="M9 16l5 5 9-11" stroke="#0b0e13" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span>eCOPY</span>
       </div>
-      <div class="sp-boot-tag">SYSTEM BOOT · V1.3</div>
+      <div class="sp-boot-tag">SYSTEM BOOT · V1.4</div>
     </div>
 
     <div class="sp-center">
@@ -56,6 +56,9 @@
         <kbd>Ctrl K</kbd>
       </button>
       <div class="top-actions">
+        <button class="icon-btn" id="bgBtn" title="后台运行并显示悬浮窗" aria-label="Background mode">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+        </button>
         <button class="icon-btn" id="bellBtn" title="Notifications" aria-label="Notifications">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
           <span class="bell-dot" id="bellDot" hidden></span>
@@ -106,6 +109,6 @@
   <div class="overlay-root" id="overlayRoot"></div>
   <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 
-  <script type="module" src="/js/app.js?v=28"></script>
+  <script type="module" src="/js/app.js?v=29"></script>
 </body>
 </html>

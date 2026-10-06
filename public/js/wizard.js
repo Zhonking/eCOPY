@@ -1,8 +1,8 @@
 // Three-step offload wizard: sources → targets/template → review & start.
-import { h, icon, clear, formatBytes, toast } from './lib.js?v=28';
-import { api } from './api.js?v=28';
-import { openPathBrowser } from './browser.js?v=28';
-import { t } from './i18n.js?v=28';
+import { h, icon, clear, formatBytes, toast } from './lib.js?v=29';
+import { api } from './api.js?v=29';
+import { openPathBrowser } from './browser.js?v=29';
+import { t } from './i18n.js?v=29';
 
 let state = null;
 let starting = false;

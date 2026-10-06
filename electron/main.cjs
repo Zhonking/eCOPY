@@ -1,6 +1,6 @@
 // eCOPY Electron main process (CommonJS).
 // Runs the Node backend in-process, then loads the SPA from localhost.
-const { app, BrowserWindow, shell, ipcMain } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const path = require('node:path');
 const os = require('node:os');
 const fs = require('node:fs');
@@ -9,6 +9,13 @@ const { pathToFileURL } = require('node:url');
 
 const PORT = 5218;
 const ICON = path.join(__dirname, '..', 'resources', 'icon.ico');
+const FLOATING_HTML = path.join(__dirname, 'floating.html');
+
+let mainWindow = null;
+let tray = null;
+let floatingWin = null;
+// When true, the next close of the main window is a real quit (tray menu / IPC).
+let quitting = false;
 
 // Last-resort diagnostics: the backend runs in the main process, and an
 // uncaught error there would otherwise exit silently with no evidence.
@@ -104,13 +111,132 @@ function createWindow() {
       nodeIntegration: false
     }
   });
+  mainWindow = win;
   win.webContents.setWindowOpenHandler(({ url }) => {
     // Reports open in the system browser.
     if (url.startsWith('http')) shell.openExternal(url);
     return { action: 'deny' };
   });
   win.loadURL(`http://localhost:${PORT}${nav}`);
+
+  // Closing the main window: if copy jobs are running, keep the app alive in
+  // the background (tray + floating window) instead of killing the transfers.
+  win.on('close', async (e) => {
+    if (quitting) return;
+    e.preventDefault();
+    const running = await runningJobCount();
+    if (running > 0) {
+      // Background mode: hide main window, show floating progress + tray.
+      win.hide();
+      ensureTray();
+      showFloatingWindow();
+    } else {
+      quitting = true;
+      app.quit();
+    }
+  });
+
+  win.on('closed', () => {
+    mainWindow = null;
+  });
 }
+
+// How many jobs are currently running? Polls the in-process backend.
+async function runningJobCount() {
+  try {
+    const r = await fetch(`http://localhost:${PORT}/api/aggregate`);
+    if (!r.ok) return 0;
+    const j = await r.json();
+    return Number(j.running) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function ensureTray() {
+  if (tray) return;
+  try {
+    const icon = nativeImage.createFromPath(ICON);
+    tray = new Tray(icon);
+    tray.setToolTip('eCOPY — 拷卡进行中');
+    tray.setContextMenu(Menu.buildFromTemplate([
+      { label: '显示主窗口', click: () => restoreMainWindow() },
+      { label: '显示悬浮窗', click: () => showFloatingWindow() },
+      { type: 'separator' },
+      { label: '退出 (停止所有任务)', click: () => quitNow() }
+    ]));
+    tray.on('click', () => restoreMainWindow());
+  } catch {
+    tray = null;
+  }
+}
+
+function createFloatingWindow() {
+  const win = new BrowserWindow({
+    width: 320,
+    height: 168,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    show: false,
+    backgroundColor: '#00000000',
+    icon: ICON,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.cjs'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
+  win.loadFile(FLOATING_HTML);
+  win.on('closed', () => { floatingWin = null; });
+  return win;
+}
+
+function showFloatingWindow() {
+  if (!floatingWin || floatingWin.isDestroyed()) {
+    floatingWin = createFloatingWindow();
+  }
+  floatingWin.show();
+  floatingWin.setAlwaysOnTop(true, 'screen-saver');
+}
+
+function hideFloatingWindow() {
+  if (floatingWin && !floatingWin.isDestroyed()) floatingWin.hide();
+}
+
+function restoreMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createWindow();
+  } else {
+    mainWindow.show();
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+}
+
+function quitNow() {
+  quitting = true;
+  if (floatingWin && !floatingWin.isDestroyed()) floatingWin.destroy();
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.destroy();
+  app.quit();
+}
+
+// Floating window + background-mode IPC (also used by the main window's
+// "minimize to floating" button).
+ipcMain.handle('app:show-floating', () => { showFloatingWindow(); return true; });
+ipcMain.handle('app:hide-floating', () => { hideFloatingWindow(); return true; });
+ipcMain.handle('app:restore-main', () => { restoreMainWindow(); return true; });
+ipcMain.handle('app:quit-now', () => { quitNow(); return true; });
+ipcMain.handle('app:running-count', () => runningJobCount());
+ipcMain.handle('app:background-mode', async () => {
+  // Hide main window, keep app alive, show floating + tray.
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide();
+  ensureTray();
+  showFloatingWindow();
+  return true;
+});
 
 // Elevated restart: an outer (normal) PowerShell asks UAC to launch an
 // elevated helper. The helper writes a signal file (meaning UAC was approved),
@@ -185,7 +311,16 @@ if (!gotLock) {
     });
   });
 
-  app.on('window-all-closed', () => {
+  // When all windows close: only quit if no jobs are running and the floating
+  // window is gone. Otherwise stay alive (tray + floating) so copies continue.
+  app.on('window-all-closed', async () => {
+    if (quitting) return;
+    const running = await runningJobCount();
+    if (running > 0 || (floatingWin && !floatingWin.isDestroyed())) {
+      ensureTray();
+      if (running > 0) showFloatingWindow();
+      return; // keep the process alive
+    }
     app.quit();
   });
 }

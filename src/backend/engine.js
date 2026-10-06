@@ -601,6 +601,68 @@ class Engine extends EventEmitter {
     }
     throw new Error('Could not allocate non-conflicting name');
   }
+
+  // ---------------- aggregate progress (floating window) ----------------
+
+  // Aggregate progress across every job currently live in the cache.
+  // Returns totals so the floating window can show overall copy progress.
+  getAggregate() {
+    let totalBytes = 0;
+    let copiedBytes = 0;
+    let speedBps = 0;
+    let running = 0;
+    let copying = 0;
+    let verifying = 0;
+    const jobs = [];
+
+    for (const job of this.cache.values()) {
+      if (job.status !== 'running') continue;
+      running++;
+      let jTotal = 0;
+      let jDone = 0;
+      for (const source of job.sources) {
+        const legCount = Object.keys(source.legs).length || 1;
+        jTotal += source.totalBytes * legCount;
+        for (const leg of Object.values(source.legs)) {
+          jDone += Math.min(leg.bytesCopied || 0, source.totalBytes);
+          speedBps += leg.speed || 0;
+          if (leg.status === 'copying') copying++;
+          if (leg.status === 'verifying') verifying++;
+        }
+      }
+      totalBytes += jTotal;
+      copiedBytes += jDone;
+      jobs.push({
+        id: job.id,
+        name: job.name,
+        totalBytes: jTotal,
+        copiedBytes: jDone,
+        status: job.status
+      });
+    }
+
+    const pct = totalBytes ? Math.min(100, (copiedBytes / totalBytes) * 100) : 0;
+    const remain = speedBps > 0 ? (totalBytes - copiedBytes) / speedBps : null;
+
+    return {
+      running,
+      totalBytes,
+      copiedBytes,
+      pct,
+      speedBps,
+      remain,
+      copying,
+      verifying,
+      jobs
+    };
+  }
+
+  hasRunningJobs() {
+    for (const job of this.cache.values()) {
+      if (job.status === 'running') return true;
+    }
+    return false;
+  }
 }
 
 // ---------- helpers ----------

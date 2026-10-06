@@ -1,7 +1,7 @@
 // Server-side folder browser (drawer). Used for sources & targets.
-import { h, icon, openDrawer } from './lib.js?v=28';
-import { api } from './api.js?v=28';
-import { t } from './i18n.js?v=28';
+import { h, icon, openDrawer } from './lib.js?v=29';
+import { api } from './api.js?v=29';
+import { t } from './i18n.js?v=29';
 
 export async function openPathBrowser({ title = t('br.selectFolder'), onSelect, startDir, volumes = [] }) {
   let curDir = startDir || (volumes[0]?.path) || osHome();
