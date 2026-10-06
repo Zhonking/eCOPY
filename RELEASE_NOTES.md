@@ -1,5 +1,60 @@
 # Release Notes
 
+## v1.4.0 — 2026-10-06
+
+### Highlights
+
+- **多任务并行拷卡** — 引擎原生支持同时发起多个拷卡任务，每个任务独立后台运行，互不阻塞；任务页可查看全部并发任务的实时进度
+- **关窗后台运行** — 有拷卡任务进行时关闭主窗口，应用不退出：主窗口隐藏、转入系统托盘，拷卡继续在后台执行；无任务时关闭才真正退出
+- **桌面悬浮进度窗** — 无边框、置顶、可拖拽的桌面悬浮窗，实时显示**拷卡总进度**（运行任务数、总百分比、聚合速度、剩余时间 ETA），并提供「显示主窗口」与「退出（停止所有任务）」按钮
+- **系统托盘** — 托盘菜单支持「显示主窗口」「显示悬浮窗」「退出」，后台运行时从托盘即可快速召回或安全退出
+
+### Improvements
+
+- 新增 `/api/aggregate` 端点与 `engine.getAggregate()`，聚合所有运行中任务的总字节、已拷贝字节、速度与 ETA
+- 主窗口顶栏新增「后台运行」按钮，一键转入后台并显示悬浮窗
+- IPC 新增 `app:show-floating / hide-floating / restore-main / quit-now / running-count / background-mode`
+
+### Fixed
+
+- 修复多任务场景下聚合统计遗漏的问题，所有 `running` 状态任务均被纳入总量计算
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 1.4.0.exe`（NSIS 安装版） | 78.3 MB | `D3BE9615C2FEFFE30CDE648FE2142CE674D91E79C5C3845CF71A9AE53637611B` |
+| `eCOPY 1.4.0.exe`（便携版） | 78.1 MB | `8C15E5D1218B91FBB4FAC12CD30127AB0FD11B90A8B2D0861B61A3010340C76A` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v1.4.0 — English
+
+### Highlights
+
+- **Parallel multi-job offload** — the engine natively supports starting multiple offload jobs at once; each runs independently in the background without blocking. The Jobs page shows live progress of every concurrent job
+- **Keep running after closing the window** — when jobs are running, closing the main window hides it and sends the app to the system tray instead of quitting; copying continues in the background. The app only quits on close when no jobs are running
+- **Desktop floating progress window** — a frameless, always-on-top, draggable overlay that shows the **aggregate offload progress** in real time (number of running jobs, total percentage, combined speed, ETA), with "Show main window" and "Quit (stop all jobs)" buttons
+- **System tray** — tray menu offers "Show main window", "Show floating window" and "Quit"; quickly recall or safely exit the app while it runs in the background
+
+### Improvements
+
+- New `/api/aggregate` endpoint and `engine.getAggregate()` aggregating total bytes, copied bytes, speed and ETA across all running jobs
+- New "Background mode" button in the main window top bar — one click to hide the window and show the floating overlay
+- New IPC handlers: `app:show-floating / hide-floating / restore-main / quit-now / running-count / background-mode`
+
+### Fixed
+
+- Fixed aggregate stats missing some jobs in multi-job scenarios; all `running` jobs are now counted
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.3.0 — 2026-09-26
 
 ### Highlights

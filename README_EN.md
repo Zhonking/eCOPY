@@ -15,6 +15,8 @@ eCOPY is professional offload software for film and video production sets: it co
 - **Incremental resume** — interrupted jobs can be retried: verified files are kept and only failed legs are re-copied, then re-verified in full
 
 ### Workflow
+- **Parallel multi-job offload** — start multiple offload jobs at once; each runs independently in the background without blocking, and the Jobs page shows all concurrent progress in one place
+- **Keep running after closing the window** — closing the main window while jobs are running does not quit: the app goes to the system tray, copying continues in the background, and a desktop floating window shows the aggregate progress
 - **Three-step wizard** — pick source card → pick targets & folder template → confirm and start
 - **Multi-target concurrent copy** — write to several drives at once, each leg with its own progress, speed and status
 - **Folder templates** — variables `{project} · {date} · {camera} · {reel} · {operator} · {volume} · {scene}`; organized by `Project/Date/Camera/Reel` by default
@@ -35,6 +37,7 @@ eCOPY is professional offload software for film and video production sets: it co
 ### User Experience
 - Deep-navy "airport self-service kiosk" style UI with a system-boot splash animation
 - **Train journey copy animation**: the train accelerates on departure, the world flows at a speed proportional to the real copy speed, and it decelerates on arrival
+- **Desktop floating progress window**: frameless, always-on-top and draggable, showing aggregate offload progress in real time (running job count, total percentage, combined speed, ETA) — at a glance even while running in the background
 - Ambient animated background, top-right toast notifications, trilingual UI (简体中文 / 日本語 / English)
 
 ## Architecture
