@@ -1,7 +1,7 @@
 // Disks & volumes view with space bars and physical health.
-import { h, icon, clear, formatBytes, toast } from './lib.js?v=27';
-import { api } from './api.js?v=27';
-import { t } from './i18n.js?v=27';
+import { h, icon, clear, formatBytes, toast } from './lib.js?v=28';
+import { api } from './api.js?v=28';
+import { t } from './i18n.js?v=28';
 
 export function renderDisks(mount, appState) {
   clear(mount);
@@ -31,7 +31,7 @@ export function renderDisks(mount, appState) {
 
   // Temperature needs elevation on Windows — explain inline, no modal.
   const needAdmin = appState.physical.some(
-    (r) => r.tempC == null && r.tempError && /not available|denied|CIM/i.test(r.tempError)
+    (r) => r.tempC == null && r.tempError && /not available|denied|CIM|admin|privilege/i.test(r.tempError)
   );
   if (needAdmin) mount.appendChild(tempAdminNotice());
 }
