@@ -1,7 +1,7 @@
 // Settings view — saved inline, no modal dialogs.
-import { h, icon, clear, toast } from './lib.js?v=29';
-import { api } from './api.js?v=29';
-import { t, LANG_OPTIONS } from './i18n.js?v=29';
+import { h, icon, clear, toast } from './lib.js?v=30';
+import { api } from './api.js?v=30';
+import { t, LANG_OPTIONS } from './i18n.js?v=30';
 
 export function renderSettings(mount, appState) {
   clear(mount);
@@ -62,6 +62,15 @@ export function renderSettings(mount, appState) {
       ]))
   );
 
+  // Floating progress window (full width)
+  card.appendChild(
+    h('div', { class: 'full' }, [
+      h('div', { style: { fontWeight: '600', marginBottom: '8px' } }, t('set.floating')),
+      checkBox(t('set.floatingEnable'), 'floatingWindow', s.floatingWindow !== false),
+      h('div', { class: 'muted', style: { fontSize: '11.5px', marginTop: '6px' } }, t('set.floatingHint'))
+    ])
+  );
+
   // Notifications (full width)
   const n = s.notifications;
   const notifBox = h('div', { class: 'full' }, [
@@ -111,7 +120,9 @@ export function renderSettings(mount, appState) {
   function collect() {
     const out = {};
     card.querySelectorAll('[data-key]').forEach((el) => {
-      out[el.dataset.key] = el.type === 'number' ? Number(el.value) : el.value;
+      out[el.dataset.key] = el.type === 'number' ? Number(el.value)
+        : el.type === 'checkbox' ? el.checked
+        : el.value;
     });
     card.querySelectorAll('[data-nested]').forEach((el) => {
       const path = el.dataset.nested.split('.');
@@ -148,7 +159,9 @@ export function renderSettings(mount, appState) {
         type: 'checkbox', checked,
         dataset: key.startsWith('notifications.events')
           ? { event: key.split('.').pop() }
-          : { nested: key },
+          : key.includes('.')
+            ? { nested: key }
+            : { key },
         onChange: markDirty
       }),
       label

@@ -129,7 +129,7 @@ function createWindow() {
       // Background mode: hide main window, show floating progress + tray.
       win.hide();
       ensureTray();
-      showFloatingWindow();
+      if (await floatingWindowEnabled()) showFloatingWindow();
     } else {
       quitting = true;
       app.quit();
@@ -150,6 +150,20 @@ async function runningJobCount() {
     return Number(j.running) || 0;
   } catch {
     return 0;
+  }
+}
+
+// Is the floating progress window enabled in settings? Defaults to true, so a
+// failed fetch can never break background mode. Manual opens (tray menu / IPC)
+// bypass this — the setting only controls the automatic display.
+async function floatingWindowEnabled() {
+  try {
+    const r = await fetch(`http://localhost:${PORT}/api/settings`);
+    if (!r.ok) return true;
+    const j = await r.json();
+    return j.floatingWindow !== false;
+  } catch {
+    return true;
   }
 }
 
@@ -234,7 +248,7 @@ ipcMain.handle('app:background-mode', async () => {
   // Hide main window, keep app alive, show floating + tray.
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide();
   ensureTray();
-  showFloatingWindow();
+  if (await floatingWindowEnabled()) showFloatingWindow();
   return true;
 });
 
@@ -318,7 +332,7 @@ if (!gotLock) {
     const running = await runningJobCount();
     if (running > 0 || (floatingWin && !floatingWin.isDestroyed())) {
       ensureTray();
-      if (running > 0) showFloatingWindow();
+      if (running > 0 && (await floatingWindowEnabled())) showFloatingWindow();
       return; // keep the process alive
     }
     app.quit();

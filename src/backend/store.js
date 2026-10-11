@@ -17,6 +17,7 @@ export const DEFAULT_SETTINGS = {
   sourceConcurrency: 2,
   autoDetect: true,
   autoStart: false, // always require confirmation
+  floatingWindow: true, // show the desktop floating progress window in background mode
   conflictPolicy: 'fail', // fail | keep-both
   theme: 'dark',
   language: 'zh',
