@@ -1,5 +1,48 @@
 # Release Notes
 
+## v1.5.2 — 2026-10-11
+
+### Highlights
+
+- **拷卡动画重做为「光轨」** — 用一条极简光轨取代此前的列车山景全场景：一条细轨、一颗随进度前行的发光梭舱（绿色品牌条纹 + 头灯 + 速度拖尾）、随**真实拷贝速度**流动的轨道刻度、蓝→绿进度填充、右侧终点圆环到站亮起并扩散脉冲。画面元素从十余种降到四种，安静、克制、一目了然
+- **保留全部原有动效机制** — 视觉速度 ∝ 拷贝速度、起步加速/到站减速、校验阶段画面永不冻结（爬行速度下限）、3 秒最短可读动画（快速小拷贝也能完整呈现）、到站绿色脉冲后舞台平滑收起
+
+### Improvements
+
+- 动画舞台高度 200px → 172px、百分比字号微调，整体更紧凑；上方保留稀疏漂浮光点与整体氛围背景呼应
+- 动画代码量减半（约 500 行 → 260 行），绘制开销更低；对 `prefers-reduced-motion` 与窗口遮挡的既有处理不变
+- 前端缓存号 v33
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 1.5.2.exe`（NSIS 安装版） | 78.4 MB | `44967E68B526A660CAC700DD16E6457E943F4E5A093CEF8EFB22760CC3D094B9` |
+| `eCOPY 1.5.2.exe`（便携版） | 78.1 MB | `3639573450D30165EA567DFC3682111B0939340A395B60BF1DBB7AAEC94E0C62` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v1.5.2 — English
+
+### Highlights
+
+- **Copy animation rebuilt as "LightRail"** — the full landscape train scene is replaced by one minimal light rail: a thin track, a glowing shuttle whose position mirrors progress (green brand stripe, headlight, speed trail), rail ticks that flow at the **real copy speed**, a blue→green progress fill, and a destination ring that lights up with an expanding pulse on arrival. A dozen scene elements are down to four — calm, restrained, instantly readable
+- **Every motion mechanic kept** — visual speed ∝ copy speed, departure acceleration / arrival deceleration, never-freeze crawl during verify, the 3-second minimum readable journey, and the smooth stage exit after the arrival pulse
+
+### Improvements
+
+- Stage height 200px → 172px with a slightly smaller percentage — a tighter, quieter block; sparse drifting motes remain in the upper half to echo the ambient background
+- Animation code roughly halved (~500 → ~260 lines) with lower draw cost; reduced-motion and window-occlusion handling unchanged
+- Front-end cache version v33
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.5.1 — 2026-10-11
 
 ### Highlights
