@@ -1,5 +1,52 @@
 # Release Notes
 
+## v1.5.0 — 2026-10-11
+
+### Highlights
+
+- **全新动态环境背景** — 五层舞台式动态场景：极光色带（蓝/青/紫三色缓慢漂移）+ 三颗柔光光斑 + 全局工程网格（从开屏延伸至整个应用）+ 上升星尘粒子 + 边缘暗角。所有动效周期均在 20 秒以上、低对比度，是氛围而非干扰；高对比主题自动关闭全部背景，亮色主题自动柔化
+- **磨砂玻璃质感界面** — 顶栏、侧边栏、卡片、选择卡、弹窗、抽屉、通知气泡全面升级为半透明磨砂玻璃（backdrop-blur），卡片带顶部高光描边与环境光阴影，透过卡片可隐约看到流动的极光
+- **页面切换过渡** — 导航切换视图时内容逐项错峰淡入上移（staggered entrance），页面之间不再生硬跳变
+
+### Improvements
+
+- 输入框 focus 光环（3px 柔和蓝晕）、hover 边框反馈；按钮 hover 上浮、全部交互控件新增键盘 focus-visible 焦点环，键盘可达性更好
+- 进度条新增流光扫过动画（含悬浮窗进度条），「数据在移动」一目了然
+- 页头新增 kiosk 风格蓝色竖条标记；导航项 hover 微位移；空状态图标呼吸动画
+- 文本选中色、滚动条悬停反馈细化；开屏 SYSTEM BOOT 版本标识更新为 V1.5
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 1.5.0.exe`（NSIS 安装版） | 78.3 MB | `958BED9E0EF7D06B32F01EB2156632ACC8F2B05DA035BCF2041546CE5AFE0AD4` |
+| `eCOPY 1.5.0.exe`（便携版） | 78.1 MB | `9DDF3030CD79EA71096A8A7073E009E6092C67A7C7DADCE436AFB25F39ACCCCF` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v1.5.0 — English
+
+### Highlights
+
+- **All-new ambient scene** — a five-layer stage: aurora bands (blue / cyan / purple, slowly drifting) + three soft orbs + a global engineering grid (now extending beyond the splash into the whole app) + rising star dust + an edge vignette. Every motion runs on 20s+ periods at low contrast — atmosphere, not distraction. The high-contrast theme disables the scene entirely; the light theme softens every layer
+- **Frosted-glass interface** — top bar, sidebar, cards, pick cards, modals, drawers and toasts are now translucent frosted glass (backdrop-blur) with a top highlight edge and ambient shadows; the flowing aurora glows faintly through every surface
+- **View transitions** — navigating between views staggers content in with a soft fade-and-rise, instead of a hard swap
+
+### Improvements
+
+- Inputs get a 3px focus halo and hover borders; buttons lift on hover; every interactive control gains a keyboard focus-visible ring for better keyboard accessibility
+- Progress bars gain a sweeping shimmer (floating window included) — "data is moving" at a glance
+- Kiosk-style accent rail on page headers; subtle nav hover slide; breathing empty-state icons
+- Text selection color and scrollbar hover feedback refined; splash SYSTEM BOOT tag updated to V1.5
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.4.1 — 2026-10-11
 
 ### Highlights
