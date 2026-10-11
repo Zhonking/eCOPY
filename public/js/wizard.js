@@ -1,11 +1,16 @@
 // Three-step offload wizard: sources → targets/template → review & start.
-import { h, icon, clear, formatBytes, toast } from './lib.js?v=31';
-import { api } from './api.js?v=31';
-import { openPathBrowser } from './browser.js?v=31';
-import { t } from './i18n.js?v=31';
+import { h, icon, clear, formatBytes, eta, toast } from './lib.js?v=32';
+import { api } from './api.js?v=32';
+import { openPathBrowser } from './browser.js?v=32';
+import { t } from './i18n.js?v=32';
 
 let state = null;
 let starting = false;
+
+// Rough single-reader throughput used for the copy-time estimate.
+const EST_BPS = 220 * 1024 * 1024;
+// Palette for the type-distribution bar (accent blue → green → amber → purple).
+const TYPE_COLORS = ['#3b82f6', '#2fe07f', '#ffb020', '#a78bfa', '#5f6f88'];
 
 export function resetWizard() {
   state = null;
@@ -21,58 +26,78 @@ export function renderWizard(mount, appState) {
       operator: appState.settings.operator,
       algorithm: appState.settings.algorithm,
       template: appState.settings.template,
-      conflictPolicy: appState.settings.conflictPolicy
+      conflictPolicy: appState.settings.conflictPolicy,
+      _lastScan: null
     };
   }
   draw(mount, appState);
 }
 
+// Totals across every selected source, honoring per-source date selection.
+function grandTotals() {
+  let fileCount = 0;
+  let totalBytes = 0;
+  for (const s of state.sources) {
+    const tot = selectedTotals(s);
+    fileCount += tot.fileCount;
+    totalBytes += tot.totalBytes;
+  }
+  return { fileCount, totalBytes };
+}
+
 function draw(mount, appState) {
   clear(mount);
+
+  // Headline: title + stepper + read-only badge share one row to save height.
   mount.appendChild(
-    h('div', { class: 'page-head' }, [
+    h('div', { class: 'wiz-headline' }, [
       h('h1', {}, t('wiz.title')),
-      h('p', {}, t('wiz.sub'))
+      stepperEl(mount, appState),
+      h('span', { class: 'ro-badge', title: t('wiz.sub') }, [
+        icon('shield', 13),
+        t('wiz.readonly')
+      ])
     ])
   );
 
-  // Stepper
-  const steps = [['1', t('wiz.step1')], ['2', t('wiz.step2')], ['3', t('wiz.step3')]];
+  if (state.step === 1) mount.appendChild(stepOne(mount, appState));
+  if (state.step === 2) mount.appendChild(stepTwo());
+  if (state.step === 3) mount.appendChild(stepThree());
+
+  mount.appendChild(actionsRow(mount, appState));
+}
+
+// Stepper with live summaries on hover; completed steps click back.
+function stepperEl(mount, appState) {
+  const tot = grandTotals();
+  const titles = [
+    null,
+    state.targets.length
+      ? `${t('wiz.sumTargets')}: ${state.targets.length} · ${state.template}`
+      : t('wiz.pickTargetFirst'),
+    state.sources.length
+      ? `${tot.fileCount} ${t('job.files')} · ${formatBytes(tot.totalBytes)}`
+      : t('wiz.pickSourceFirst')
+  ];
+  const steps = [t('wiz.step1'), t('wiz.step2'), t('wiz.step3')];
   const stepper = h('div', { class: 'stepper' });
-  steps.forEach(([n, label], i) => {
-    const cls =
-      state.step > i + 1 ? 'step done' : state.step === i + 1 ? 'step active' : 'step';
+  steps.forEach((label, i) => {
+    const done = state.step > i + 1;
+    const active = state.step === i + 1;
+    const props = { class: `step${done ? ' done' : ''}${active ? ' active' : ''}` };
+    if (titles[i]) props.title = titles[i];
+    if (done) {
+      props.onClick = () => { state.step = i + 1; draw(mount, appState); };
+    }
     stepper.appendChild(
-      h('div', { class: cls }, [
-        h('div', { class: 'num' }, state.step > i + 1 ? '✓' : n),
+      h('div', props, [
+        h('div', { class: 'num' }, done ? '✓' : String(i + 1)),
         h('div', { class: 'txt' }, label)
       ])
     );
     if (i < steps.length - 1) stepper.appendChild(h('div', { class: 'step-line' }));
   });
-  mount.appendChild(stepper);
-
-  if (state.step === 1) mount.appendChild(stepOne(appState));
-  if (state.step === 2) mount.appendChild(stepTwo());
-  if (state.step === 3) mount.appendChild(stepThree());
-
-  // Actions
-  const actions = h('div', { class: 'wizard-actions' });
-  if (state.step > 1) {
-    actions.appendChild(
-      h('button', { class: 'btn', onClick: () => { state.step--; draw(mount, appState); } }, t('wiz.back'))
-    );
-  } else actions.appendChild(h('div'));
-  if (state.step < 3) {
-    actions.appendChild(
-      h('button', {
-        class: 'btn primary',
-        disabled: state.step === 1 ? !state.sources.length : !state.targets.length,
-        onClick: () => { state.step++; draw(mount, appState); }
-      }, t('wiz.next'))
-    );
-  }
-  mount.appendChild(actions);
+  return stepper;
 }
 
 // ---------- step 1: sources ----------
@@ -150,50 +175,177 @@ function sourceCard(src, appState) {
     h('div', { class: 'pc-meta' }, [
       h('span', {}, `${t('job.reel')} ${src.reel}`),
       h('span', {}, `${totals.fileCount} ${t('job.files')}`),
-      h('span', {}, formatBytes(totals.totalBytes))
+      h('span', {}, formatBytes(totals.totalBytes)),
+      h('span', { class: 'muted' }, `${t('wiz.estTime')} ${eta(totals.totalBytes / EST_BPS)}`)
     ]),
     dateFilterRow(src, appState),
     h('div', { class: 'pc-path' }, src.path)
   ]);
 }
 
-function stepOne(appState) {
-  const wrap = h('div');
+// Best-effort SMART lookup for a removable volume: smartctl reports physical
+// disks without partition letters, so match on capacity (±2%).
+function smartForVolume(v, physical) {
+  if (!v.removable || !physical?.length) return null;
+  return physical.find(
+    (p) => p.size > 0 && Math.abs(p.size - v.size) / Math.max(p.size, v.size) < 0.02
+  ) || null;
+}
 
-  // Removable volumes quick-pick
-  const vols = appState.volumes.filter(
-    (v) => !state.sources.some((s) => s.path === v.path)
+function volumeCard(v, appState) {
+  const added = state.sources.some((s) => s.path === v.path);
+  const used = Math.max(0, v.size - v.free);
+  const pct = v.size ? Math.min(100, Math.round((used / v.size) * 100)) : 0;
+  const phys = smartForVolume(v, appState.physical);
+  const healthOk = phys?.health ? /passed|ok/i.test(phys.health) : false;
+  return h('button', {
+    class: 'pick-card vol-card' + (added ? ' is-sel' : ''),
+    onClick: () => (added
+      ? removeSource(v.path, appState)
+      : addSource(v.path, appState))
+  }, [
+    h('div', { class: 'pc-top' }, [
+      h('span', { class: 'vol-ic' }, [icon('disk', 17)]),
+      h('span', { class: 'pc-name' }, `${v.label || t('wiz.volume')} · ${v.mount}`),
+      added
+        ? h('span', { class: 'vc-check' }, [icon('check', 12), t('wiz.added')])
+        : h('span', { class: 'vc-add' }, [icon('plus', 13)])
+    ]),
+    h('div', { class: 'vol-bar' }, [h('div', { style: { width: pct + '%' } })]),
+    h('div', { class: 'pc-meta' }, [
+      h('span', {}, `${formatBytes(v.size)} · ${v.fs || '—'}`),
+      h('span', {}, `${t('wiz.free')} ${formatBytes(v.free)}`)
+    ]),
+    h('div', { class: 'vol-tags' }, [
+      v.removable ? h('span', { class: 'brand-tag' }, t('wiz.removable')) : null,
+      phys?.tempC != null
+        ? h('span', { class: `pill plain ${phys.tempC >= 60 ? 'warn' : 'ok'}` }, `${phys.tempC} °C`)
+        : null,
+      phys?.health
+        ? h('span', { class: `pill plain ${healthOk ? 'ok' : 'warn'}` }, `SMART ${healthOk ? 'OK' : phys.health}`)
+        : null
+    ])
+  ]);
+}
+
+async function rescan(mount, appState) {
+  try {
+    const s = await api.state();
+    appState.volumes = s.volumes;
+    appState.physical = s.physical;
+    state._lastScan = new Date();
+    draw(mount, appState);
+  } catch (e) {
+    toast(t('srv.offline'), e.message, 'bad');
+  }
+}
+
+function fmtClock(d) {
+  return d.toTimeString().slice(0, 8);
+}
+
+// Line-art memory card → drive, for the empty states.
+function cardIllustration() {
+  return h('div', {
+    html: `<svg viewBox="0 0 132 72" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 22v34a6 6 0 0 0 6 6h32a6 6 0 0 0 6-6V14L46 6H20a6 6 0 0 0-6 6Z"/>
+      <path d="M30 6v9h8V8"/>
+      <rect x="24" y="38" width="20" height="13" rx="2"/>
+      <path d="M68 36h14m-5-5 5 5-5 5"/>
+      <rect x="92" y="16" width="34" height="40" rx="5"/>
+      <circle cx="109" cy="36" r="7"/>
+      <path d="m109 31v4l3 2"/>
+    </svg>`
+  });
+}
+
+function stepOne(mount, appState) {
+  const wrap = h('div', {
+    class: 'grid',
+    style: { gridTemplateColumns: 'minmax(0, 1fr) 330px', gap: '16px', alignItems: 'start' }
+  });
+
+  const left = h('div');
+
+  // --- detected drives: selectable cards + rescan + last-scan time ---
+  left.appendChild(
+    h('div', { class: 'detected-head' }, [
+      h('div', { class: 'section-title', style: { margin: '0' } }, t('wiz.detected')),
+      state._lastScan
+        ? h('span', { class: 'last-scan' }, t('wiz.lastScan', { time: fmtClock(state._lastScan) }))
+        : null,
+      h('button', {
+        class: 'btn rescan-btn',
+        onClick: () => rescan(mount, appState)
+      }, [icon('retry', 13), t('wiz.refresh')])
+    ])
+  );
+
+  const vols = [...appState.volumes].sort((a, b) =>
+    Number(b.removable) - Number(a.removable) || a.mount.localeCompare(b.mount)
   );
   if (vols.length) {
-    wrap.appendChild(h('div', { class: 'section-title' }, t('wiz.detected')));
-    const chips = h('div', { style: { marginBottom: '6px' } });
-    for (const v of vols) {
-      chips.appendChild(
-        h('button', {
-          class: 'report-chip',
-          onClick: () => addSource(v.path, appState)
-        }, [icon('disk'), `${v.label || v.mount} · ${v.mount}`])
-      );
-    }
-    wrap.appendChild(chips);
+    const volGrid = h('div', { class: 'pick-grid' });
+    for (const v of vols) volGrid.appendChild(volumeCard(v, appState));
+    left.appendChild(volGrid);
+  } else {
+    left.appendChild(
+      h('div', { class: 'card empty-mini' }, [cardIllustration(), t('wiz.detectedEmpty')])
+    );
   }
 
-  wrap.appendChild(h('div', { class: 'section-title' }, t('wiz.sources')));
+  // --- selected sources: cards + drag-and-drop add tile ---
+  left.appendChild(h('div', { class: 'section-title' }, t('wiz.sources')));
   const grid = h('div', { class: 'pick-grid' });
   for (const s of state.sources) grid.appendChild(sourceCard(s, appState));
   grid.appendChild(
     h('button', {
-      class: 'add-tile',
+      class: 'add-tile dropzone',
       onClick: () =>
         openPathBrowser({
           title: t('br.addSourceTitle'),
           volumes: appState.volumes,
           onSelect: (p) => addSource(p, appState)
-        })
-    }, [icon('plus', 22), t('wiz.addSource')])
+        }),
+      onDragover: (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.add('drag');
+      },
+      onDragleave: (e) => e.currentTarget.classList.remove('drag'),
+      onDrop: (e) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drag');
+        handleDrop(e, appState);
+      }
+    }, [icon('plus', 22), t('wiz.addSourceDrop')])
   );
-  wrap.appendChild(grid);
+  left.appendChild(grid);
+  wrap.appendChild(left);
+
+  // --- right: live summary panel ---
+  wrap.appendChild(summaryPanel(appState));
   return wrap;
+}
+
+async function handleDrop(e, appState) {
+  const dt = e.dataTransfer;
+  const paths = [];
+  if (window.ecopy?.pathsForFiles && dt.files?.length) {
+    try { paths.push(...window.ecopy.pathsForFiles(Array.from(dt.files))); } catch { /* fall through */ }
+  }
+  if (!paths.length) {
+    for (const f of dt.files || []) if (f.path) paths.push(f.path);
+  }
+  if (!paths.length) {
+    toast(t('wiz.sourceFail'), t('wiz.dropNoPath'), 'warn');
+    return;
+  }
+  for (const p of paths) await addSource(p, appState);
+}
+
+function removeSource(path, appState) {
+  state.sources = state.sources.filter((s) => s.path !== path);
+  renderWizard(document.getElementById('content'), appState);
 }
 
 async function addSource(p, appState) {
@@ -201,11 +353,97 @@ async function addSource(p, appState) {
   try {
     const scan = await api.scan(p);
     state.sources.push(scan);
+    state._lastScan = state._lastScan || new Date();
     toast(t('wiz.sourceAdded'), `${scan.volume} · ${scan.fileCount} ${t('job.files')}`, 'ok', 3500);
     renderWizard(document.getElementById('content'), appState);
   } catch (e) {
     toast(t('wiz.sourceFail'), e.message, 'bad');
   }
+}
+
+// Extension-size histogram across every selected source (date-filter aware).
+function typeDistribution() {
+  const byExt = new Map();
+  for (const s of state.sources) {
+    const keep = (f) => !s._dateSel || f.shootDate == null || s._dateSel.has(f.shootDate);
+    for (const f of s.files || []) {
+      if (!keep(f)) continue;
+      // Files carry a relative path in `rel` (extension included).
+      const base = String(f.rel || f.name || '').split(/[\\/]/).pop();
+      const m = /\.([a-z0-9]{1,6})$/i.exec(base);
+      const ext = m ? `.${m[1].toLowerCase()}` : t('wiz.typeOther');
+      byExt.set(ext, (byExt.get(ext) || 0) + f.size);
+    }
+  }
+  const rows = [...byExt.entries()].sort((a, b) => b[1] - a[1]);
+  const top = rows.slice(0, 4);
+  const restBytes = rows.slice(4).reduce((a, [, b]) => a + b, 0);
+  if (restBytes > 0) top.push([t('wiz.typeOther'), restBytes]);
+  return top;
+}
+
+function summaryPanel(appState) {
+  const card = h('div', { class: 'card wiz-summary' });
+  if (!state.sources.length) {
+    card.appendChild(
+      h('div', { class: 'empty-mini', style: { padding: '34px 10px' } }, [
+        cardIllustration(),
+        t('wiz.noSelection')
+      ])
+    );
+    return card;
+  }
+
+  const tot = grandTotals();
+  card.appendChild(h('div', { class: 'section-title', style: { margin: '0' } }, t('wiz.selectedSummary')));
+
+  // Removable chips — quick overview + quick removal.
+  const chips = h('div', { class: 'src-chips' });
+  for (const s of state.sources) {
+    chips.appendChild(h('span', { class: 'src-chip' }, [
+      h('span', { class: 'sc-name', title: s.path }, s.volume),
+      h('button', {
+        title: t('wiz.remove'),
+        onClick: () => removeSource(s.path, appState)
+      }, [icon('x', 11)])
+    ]));
+  }
+  card.appendChild(chips);
+
+  card.appendChild(h('div', { class: 'wiz-sumrows' }, [
+    sumRow(t('wiz.sumSources'), `${state.sources.length}`),
+    sumRow(t('wiz.sumFiles'), `${tot.fileCount}`),
+    sumRow(t('wiz.sumSize'), formatBytes(tot.totalBytes)),
+    sumRow(t('wiz.estTime'), eta(tot.totalBytes / EST_BPS))
+  ]));
+
+  // Type distribution: stacked bar + legend.
+  const dist = typeDistribution();
+  if (dist.length > 1 && tot.totalBytes > 0) {
+    const bar = h('div', { class: 'type-bar' },
+      dist.map(([ext, bytes], i) =>
+        h('div', {
+          title: `${ext} · ${formatBytes(bytes)}`,
+          style: { width: `${(bytes / tot.totalBytes) * 100}%`, background: TYPE_COLORS[i % TYPE_COLORS.length] }
+        })
+      )
+    );
+    const legend = h('div', { class: 'type-legend' },
+      dist.map(([ext, bytes], i) =>
+        h('div', { class: 'type-row' }, [
+          h('span', {
+            class: 'type-dot',
+            style: { background: TYPE_COLORS[i % TYPE_COLORS.length] }
+          }),
+          h('span', { class: 'mono', style: { flex: '1' } }, ext),
+          h('span', { class: 'muted' }, formatBytes(bytes)),
+          h('span', { class: 'faint' }, `${Math.round((bytes / tot.totalBytes) * 100)}%`)
+        ])
+      )
+    );
+    card.appendChild(h('div', {}, [h('div', { class: 'section-title', style: { margin: '14px 0 8px' } }, t('wiz.typeDist')), bar, legend]));
+  }
+  return card;
 }
 
 // ---------- step 2: targets + template ----------
@@ -363,6 +601,59 @@ function sumRow(k, v) {
   return h('div', {
     style: { display: 'flex', justifyContent: 'space-between', fontSize: '13px' }
   }, [h('span', { class: 'muted' }, k), h('b', {}, v)]);
+}
+
+// ---------- footer action bar ----------
+
+function footSummary() {
+  const tot = grandTotals();
+  if (state.step === 1) {
+    return state.sources.length
+      ? `${state.sources.length} ${t('wiz.sumSources')} · ${tot.fileCount} ${t('job.files')} · ${formatBytes(tot.totalBytes)}`
+      : '';
+  }
+  if (state.step === 2) {
+    return `${state.sources.length} ${t('wiz.sumSources')} · ${state.targets.length} ${t('wiz.sumTargets')}`;
+  }
+  return `${state.sources.length} ${t('wiz.sumSources')} → ${state.targets.length} ${t('wiz.sumTargets')} · ${formatBytes(tot.totalBytes)}`;
+}
+
+function actionsRow(mount, appState) {
+  const actions = h('div', { class: 'wizard-actions' });
+
+  const left = h('div', { style: { display: 'flex', gap: '8px' } });
+  if (state.step > 1) {
+    left.appendChild(
+      h('button', { class: 'btn', onClick: () => { state.step--; draw(mount, appState); } }, t('wiz.back'))
+    );
+  }
+  left.appendChild(
+    h('button', {
+      class: 'btn ghost', title: t('wiz.reset'),
+      onClick: () => {
+        state = null;
+        renderWizard(mount, appState);
+        toast(t('wiz.resetDone'), '', 'ok', 2000);
+      }
+    }, t('wiz.reset'))
+  );
+  actions.appendChild(left);
+
+  actions.appendChild(h('div', { class: 'wiz-foot-sum' }, footSummary()));
+
+  if (state.step < 3) {
+    const disabled = state.step === 1 ? !state.sources.length : !state.targets.length;
+    const tip = state.step === 1 ? t('wiz.pickSourceFirst') : t('wiz.pickTargetFirst');
+    const btn = h('button', {
+      class: 'btn primary',
+      disabled,
+      onClick: () => { state.step++; draw(mount, appState); }
+    }, t('wiz.next'));
+    // Disabled buttons swallow hover events in Chromium — the wrapper carries
+    // the explanatory tooltip instead.
+    actions.appendChild(disabled ? h('span', { class: 'next-wrap', title: tip }, btn) : btn);
+  }
+  return actions;
 }
 
 async function startJob() {
