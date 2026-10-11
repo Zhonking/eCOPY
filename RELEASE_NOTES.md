@@ -1,5 +1,48 @@
 # Release Notes
 
+## v1.4.1 — 2026-10-11
+
+### Highlights
+
+- **悬浮窗设置开关** — 设置页新增「悬浮进度窗」区块：可一键开启/关闭后台运行时的桌面悬浮进度窗。关闭后关闭主窗口或点击「后台运行」时仅保留系统托盘图标，不再弹出悬浮窗；托盘菜单中的「显示悬浮窗」仍可随时手动打开
+- **默认开启、向后兼容** — 升级后保持原有行为（悬浮窗开启）；老版本设置文件自动补全默认值，无需手动迁移
+
+### Improvements
+
+- 顶层布尔设置项现由设置页直接收集保存（checkbox 取值修复），后续新增开关类设置更简单
+- 主窗口顶栏「后台运行」按钮提示更新，说明悬浮窗显示与否由设置决定
+- 前端静态资源缓存版本号升级（v30），确保升级后浏览器不残留旧版设置页
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 1.4.1.exe`（NSIS 安装版） | 78.3 MB | `E9BCE3AAA1B8B94C954B8FCDBDF77D437B525B7E0C697C4F59EB656D2A775A6D` |
+| `eCOPY 1.4.1.exe`（便携版） | 78.1 MB | `3E2C7DD77A6FEB006FC474A39052A2156A5AAA3080A6A40D5A223D19328E9F90` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v1.4.1 — English
+
+### Highlights
+
+- **Floating window setting** — new "Floating progress window" section in Settings: toggle the desktop floating progress window shown in background mode. When off, closing the main window or clicking "Background" keeps only the system tray icon — no floating overlay; "Show floating window" in the tray menu still opens it manually at any time
+- **On by default, backward compatible** — existing behavior is preserved after upgrading (floating window enabled); older settings files are automatically merged with the new default, no manual migration needed
+
+### Improvements
+
+- Top-level boolean settings are now collected directly by the settings page (checkbox value fix), making future toggle-style settings simpler
+- The "Background mode" top-bar button tooltip now reflects that the floating window follows the setting
+- Front-end static asset cache version bumped (v30) so upgraded browsers never keep a stale settings page
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.4.0 — 2026-10-06
 
 ### Highlights

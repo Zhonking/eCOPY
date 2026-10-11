@@ -37,7 +37,7 @@ eCOPY is professional offload software for film and video production sets: it co
 ### User Experience
 - Deep-navy "airport self-service kiosk" style UI with a system-boot splash animation
 - **Train journey copy animation**: the train accelerates on departure, the world flows at a speed proportional to the real copy speed, and it decelerates on arrival
-- **Desktop floating progress window**: frameless, always-on-top and draggable, showing aggregate offload progress in real time (running job count, total percentage, combined speed, ETA) — at a glance even while running in the background
+- **Desktop floating progress window**: frameless, always-on-top and draggable, showing aggregate offload progress in real time (running job count, total percentage, combined speed, ETA) — at a glance even while running in the background; can be toggled in Settings (tray-only when off)
 - Ambient animated background, top-right toast notifications, trilingual UI (简体中文 / 日本語 / English)
 
 ## Architecture
