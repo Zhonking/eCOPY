@@ -1,8 +1,8 @@
 // Job detail: per-source Safe gate, per-target legs, reports, logs.
-import { h, icon, clear, formatBytes, rate, eta, toast } from './lib.js?v=32';
-import { api } from './api.js?v=32';
-import { t } from './i18n.js?v=32';
-import { createWarp } from './warp.js?v=32';
+import { h, icon, clear, formatBytes, rate, eta, toast } from './lib.js?v=33';
+import { api } from './api.js?v=33';
+import { t } from './i18n.js?v=33';
+import { createWarp } from './warp.js?v=33';
 
 // Persistent warp stage across SSE redraws: the stage element (and its canvas)
 // survive redraws so CSS entry/exit transitions and the canvas animation

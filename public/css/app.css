@@ -931,10 +931,10 @@ table.data-table { width: 100%; border-collapse: collapse; }
 .onboard-start { padding: 13px 46px; border-radius: 10px; border: 0; cursor: pointer; font-size: 15px; font-weight: 700; background: linear-gradient(135deg, #2fe07f, #25c96d); color: #0b0e13; box-shadow: 0 8px 30px rgba(47,224,127,.35); transition: transform .15s, box-shadow .15s; animation: sp-up .55s 1.05s both; }
 .onboard-start:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(47,224,127,.45); }
 
-/* ================= Warp stage (spacetime jump) ================= */
+/* ================= Warp stage (light-rail progress) ================= */
 .warp-stage {
   position: relative;
-  height: 200px;
+  height: 172px;
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid rgba(120, 200, 255, 0.14);
@@ -1000,7 +1000,7 @@ table.data-table { width: 100%; border-collapse: collapse; }
 }
 .warp-data { display: flex; align-items: flex-end; gap: 18px; }
 .warp-pct {
-  font-size: 46px;
+  font-size: 40px;
   font-weight: 800;
   line-height: 1;
   color: #eaf6ff;
