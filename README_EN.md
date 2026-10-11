@@ -17,7 +17,7 @@ eCOPY is professional offload software for film and video production sets: it co
 ### Workflow
 - **Parallel multi-job offload** — start multiple offload jobs at once; each runs independently in the background without blocking, and the Jobs page shows all concurrent progress in one place
 - **Keep running after closing the window** — closing the main window while jobs are running does not quit: the app goes to the system tray, copying continues in the background, and a desktop floating window shows the aggregate progress
-- **Three-step wizard** — pick source card → pick targets & folder template → confirm and start
+- **Three-step wizard** — pick source card → pick targets & folder template → confirm and start; clickable drive cards, folder drag-and-drop, live selected-sources panel (files / size / est. time / type mix), click-back stepper
 - **Multi-target concurrent copy** — write to several drives at once, each leg with its own progress, speed and status
 - **Folder templates** — variables `{project} · {date} · {camera} · {reel} · {operator} · {volume} · {scene}`; organized by `Project/Date/Camera/Reel` by default
 - **Automatic camera-card detection** — external cards are detected on insertion; brand (ARRI / RED / Sony / Blackmagic / Canon / Panasonic), card type and reel are identified automatically

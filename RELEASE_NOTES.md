@@ -1,5 +1,54 @@
 # Release Notes
 
+## v1.5.1 — 2026-10-11
+
+### Highlights
+
+- **向导第一步全面重构** — 检测到的卡与驱动器改为可点选卡片：名称 · 盘符、容量条、文件系统、剩余空间一目了然，可移动卡按容量匹配显示 SMART 温度/健康徽标；点击即添加为源卡（再点移除），新增「刷新检测」按钮与最后检测时间
+- **已选源摘要面板** — 右侧新增常驻摘要：源卡 chips（可单独移除）、文件数、总大小、预估拷贝时长、类型分布堆叠条（按扩展名统计大小占比），选择即时反馈
+- **拖放添加源卡** — 添加框文案改为「点击浏览，或将文件夹拖到此处」，支持整文件夹拖入（多选可一次添加多张）；通过 preload webUtils 适配 Electron ≥32 的拖放路径解析
+- **步骤条实用化** — 已完成步骤可点击直接回退；步骤 2/3 悬停显示当前摘要（已选目标与模板 / 文件数与总大小）
+
+### Improvements
+
+- 「继续」按钮禁用态明确化：降低透明度 + not-allowed 光标 + 悬停提示「请先选择源卡/目标盘」；底部操作栏改为「上一步/重置 + 当前已选摘要 + 继续」三段式
+- 标题、步骤条、「源卡只读」安全徽标合并为一行，节省纵向空间；安全说明从灰字升级为绿色 🔒 常驻徽标
+- 侧边栏「已连接」状态移至顶栏药丸；空状态新增「存储卡 → 硬盘」线稿插图（呼吸动画）
+- 每张源卡显示预估拷贝时长；三语（中/日/英）文案同步；前端缓存号 v32
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 1.5.1.exe`（NSIS 安装版） | 78.4 MB | `9289B748B2D738AF4BF5240B7BF13E69DCE3C4C9E9964549089C76554D14880D` |
+| `eCOPY 1.5.1.exe`（便携版） | 78.1 MB | `30BBE8BD1A80BBD3AC20B2E5F046F07036AAA180CD8DB4393B583A708E4DFBF1` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v1.5.1 — English
+
+### Highlights
+
+- **Step 1 rebuilt** — detected cards & drives are now clickable cards: label · mount, capacity bar, filesystem and free space at a glance; removable cards matched by capacity show SMART temperature/health badges. Click to add as a source (click again to remove), plus a "Rescan" button and last-scan time
+- **Selected-sources panel** — a live summary on the right: removable source chips, file count, total size, estimated copy time and a type-mix stacked bar (size share by extension) — instant feedback as you pick
+- **Drag-and-drop sources** — the add tile now reads "Click to browse, or drop a folder here" and accepts dropped folders (multi-drop supported); drop paths resolve via preload webUtils for Electron ≥32
+- **A stepper that works** — completed steps are clickable shortcuts back; hovering steps 2/3 previews the current selection (targets & template / files & size)
+
+### Improvements
+
+- The "Next" button has an explicit disabled state (dimmed, not-allowed cursor, hover hint "Select a source card first"); the footer bar is now back/reset + live selection summary + next
+- Title, stepper and the "sources read-only" safety badge share one row; the safety note is now a green 🔒 badge instead of grey text
+- The sidebar "connected" status moved into a topbar pill; empty states get a breathing "card → drive" line illustration
+- Per-source estimated copy time; trilingual copy (zh/ja/en); front-end cache version v32
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.5.0 — 2026-10-11
 
 ### Highlights
