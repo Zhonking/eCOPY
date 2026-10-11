@@ -1,12 +1,12 @@
 // eCOPY app bootstrap: splash, onboarding, i18n, routing, SSE, palette, notifications.
-import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=30';
-import { api } from './api.js?v=30';
-import { renderWizard, resetWizard } from './wizard.js?v=30';
-import { renderJobs } from './joblist.js?v=30';
-import { renderJob, destroyWarp } from './jobview.js?v=30';
-import { renderDisks } from './disksview.js?v=30';
-import { renderSettings } from './settingsview.js?v=30';
-import { t, setLang, LANG_OPTIONS } from './i18n.js?v=30';
+import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=31';
+import { api } from './api.js?v=31';
+import { renderWizard, resetWizard } from './wizard.js?v=31';
+import { renderJobs } from './joblist.js?v=31';
+import { renderJob, destroyWarp } from './jobview.js?v=31';
+import { renderDisks } from './disksview.js?v=31';
+import { renderSettings } from './settingsview.js?v=31';
+import { t, setLang, LANG_OPTIONS } from './i18n.js?v=31';
 
 const appState = { settings: {}, volumes: [], physical: [], jobs: [] };
 window.__appState = appState;
@@ -228,6 +228,11 @@ async function route() {
   else if (view === 'disks') renderDisks(content, appState);
   else if (view === 'settings') renderSettings(content, appState);
   else window.__go('wizard');
+
+  // Stagger the freshly rendered children in (see .view-enter in app.css).
+  content.classList.remove('view-enter');
+  void content.offsetWidth; // restart the animation even mid-flight
+  content.classList.add('view-enter');
 }
 
 window.addEventListener('hashchange', () => route());

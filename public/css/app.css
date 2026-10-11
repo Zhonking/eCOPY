@@ -26,6 +26,11 @@
   --font: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
   --mono: 'Cascadia Code', ui-monospace, Consolas, monospace;
   --ease-kiosk: cubic-bezier(0.22, 0.9, 0.24, 1);
+  /* Frosted-glass surfaces over the ambient scene */
+  --glass: rgba(15, 24, 40, 0.62);
+  --glass-strong: rgba(10, 17, 30, 0.78);
+  --glass-topline: rgba(255, 255, 255, 0.05);
+  --glass-blur: 16px;
 }
 
 [data-theme='high-contrast'] {
@@ -51,10 +56,14 @@
   --text-dim: #5a6474;
   --text-faint: #8a94a4;
   --shadow: 0 8px 24px rgba(20, 30, 50, 0.1);
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-strong: rgba(255, 255, 255, 0.86);
+  --glass-topline: rgba(255, 255, 255, 0.85);
 }
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
+::selection { background: rgba(59, 130, 246, 0.35); }
 body {
   margin: 0;
   font-family: var(--font);
@@ -83,10 +92,13 @@ kbd {
   align-items: center;
   gap: 20px;
   padding: 0 20px;
-  background: var(--bg-elev);
+  background: var(--glass-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.25);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.25);
   border-bottom: 1px solid var(--border-soft);
   flex-shrink: 0;
   position: relative;
+  z-index: 10;
 }
 /* Faint signal-blue hairline — the "status light" of a kiosk header */
 .topbar::after {
@@ -120,6 +132,7 @@ kbd {
   cursor: pointer; display: grid; place-items: center;
 }
 .icon-btn:hover { background: var(--surface); border-color: var(--border); color: var(--text); }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .bell-dot {
   position: absolute; top: 7px; right: 8px;
   width: 8px; height: 8px; border-radius: 50%;
@@ -131,11 +144,14 @@ kbd {
 .shell { display: flex; height: calc(100vh - 60px); }
 .sidebar {
   width: 218px;
-  background: var(--bg-elev);
+  background: var(--glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.2);
   border-right: 1px solid var(--border-soft);
   padding: 14px 10px;
   display: flex; flex-direction: column; gap: 4px;
   flex-shrink: 0;
+  z-index: 9;
 }
 .nav-item {
   position: relative;
@@ -144,7 +160,7 @@ kbd {
   padding: 10px 12px; border-radius: var(--radius-sm);
   cursor: pointer; font-size: 13.5px; text-align: left; width: 100%;
   min-height: 50px;
-  transition: background .15s, color .15s;
+  transition: background .18s, color .18s, transform .18s var(--ease-kiosk);
 }
 .nav-item svg { width: 19px; height: 19px; flex-shrink: 0; }
 .nav-labels { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
@@ -153,7 +169,8 @@ kbd {
   font-size: 8.5px; letter-spacing: 0.2em; color: var(--text-faint);
   text-transform: uppercase; font-weight: 500;
 }
-.nav-item:hover { background: var(--surface); color: var(--text); }
+.nav-item:hover { background: var(--surface); color: var(--text); transform: translateX(2px); }
+.nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .nav-item.active { background: var(--accent-soft); color: var(--accent); }
 .nav-item.active small { color: rgba(96, 150, 255, .8); }
 /* Kiosk-style active indicator rail on the left edge */
@@ -176,20 +193,36 @@ kbd {
    still sinks via its margin-top:auto. */
 .content > * { flex-shrink: 0; }
 .content::-webkit-scrollbar { width: 10px; }
-.content::-webkit-scrollbar-thumb { background: #1e2a42; border-radius: 6px; border: 2px solid var(--bg); }
+.content::-webkit-scrollbar-thumb { background: rgba(122, 144, 184, 0.28); border-radius: 6px; border: 2px solid transparent; background-clip: padding-box; }
+.content::-webkit-scrollbar-thumb:hover { background: rgba(122, 144, 184, 0.45); background-clip: padding-box; }
 
 /* ---------- page headers ---------- */
-.page-head { margin-bottom: 24px; }
+.page-head { margin-bottom: 24px; position: relative; padding-left: 14px; }
+/* Kiosk-style accent rail marking the start of every page */
+.page-head::before {
+  content: ''; position: absolute; left: 0; top: 5px; bottom: 5px; width: 3px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--accent), rgba(59, 130, 246, 0));
+}
 .page-head h1 { margin: 0 0 4px; font-size: 23px; font-weight: 700; letter-spacing: .01em; }
 .page-head p { margin: 0; color: var(--text-dim); font-size: 13.5px; }
 
 /* ---------- cards & generic ---------- */
+/* Frosted glass over the ambient scene: translucent fill + blur + a 1px top
+   highlight so every card catches light along its upper edge. */
 .card {
-  background: var(--surface);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.022), rgba(255, 255, 255, 0) 42%),
+    var(--glass);
+  backdrop-filter: blur(12px) saturate(1.15);
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 18px;
+  box-shadow: var(--shadow), inset 0 1px 0 var(--glass-topline);
+  transition: border-color .18s, box-shadow .18s;
 }
+[data-theme='high-contrast'] .card { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; }
 .grid { display: grid; gap: 14px; }
 .muted { color: var(--text-dim); }
 .faint { color: var(--text-faint); }
@@ -204,11 +237,12 @@ kbd {
   padding: 8px 15px;
   font-size: 13px; font-weight: 500;
   cursor: pointer;
-  transition: background .13s, border-color .13s, transform .08s;
+  transition: background .15s, border-color .15s, transform .12s var(--ease-kiosk), box-shadow .15s;
 }
-.btn:hover { background: #1d2a44; border-color: #2c3d5c; }
-.btn:active { transform: translateY(1px); }
-.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:hover { background: #1d2a44; border-color: #2c3d5c; transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 .btn svg { width: 15px; height: 15px; }
 .btn.primary {
   background: linear-gradient(180deg, #4d93ff 0%, #2f76ee 100%);
@@ -249,10 +283,14 @@ kbd {
   font-size: 13.5px;
   font-family: inherit;
   outline: none;
-  transition: border-color .13s;
+  transition: border-color .15s, box-shadow .15s;
   width: 100%;
 }
-.input:focus, select.input:focus { border-color: var(--accent); }
+.input:hover { border-color: #31405c; }
+.input:focus, select.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+}
 .input.mono { font-family: var(--mono); font-size: 12.5px; }
 .field .hint { font-size: 11.5px; color: var(--text-faint); }
 
@@ -276,17 +314,23 @@ kbd {
 /* ---------- selectable cards (sources/targets) ---------- */
 .pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
 .pick-card {
-  background: var(--surface);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.022), rgba(255, 255, 255, 0) 42%),
+    var(--glass);
+  backdrop-filter: blur(12px) saturate(1.15);
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
+  box-shadow: inset 0 1px 0 var(--glass-topline);
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
   padding: 14px 15px;
   cursor: pointer;
-  transition: border-color .15s, background .15s, transform .1s;
+  transition: border-color .15s, background .15s, transform .12s var(--ease-kiosk), box-shadow .15s;
   text-align: left;
   color: var(--text);
 }
-.pick-card:hover { border-color: #34435a; transform: translateY(-1px); }
-.pick-card.selected { border-color: var(--accent); background: rgba(74,158,255,.06); }
+.pick-card:hover { border-color: #34435a; transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35), inset 0 1px 0 var(--glass-topline); }
+.pick-card.selected { border-color: var(--accent); background: rgba(74, 158, 255, .09); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12), inset 0 1px 0 var(--glass-topline); }
+[data-theme='high-contrast'] .pick-card { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; }
 .pick-card .pc-top { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
 .brand-tag {
   font-size: 10.5px; font-weight: 700; letter-spacing: .06em;
@@ -361,6 +405,18 @@ kbd {
   background: linear-gradient(90deg, #3d8ce8, var(--accent));
   border-radius: 6px;
   transition: width .25s ease;
+  position: relative;
+  overflow: hidden;
+}
+/* Light sweeping across an active bar — reads as "data is moving" */
+.progress > div::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: translateX(-100%);
+  animation: progress-shimmer 1.7s ease-in-out infinite;
+}
+@keyframes progress-shimmer {
+  60%, 100% { transform: translateX(100%); }
 }
 .progress.ok > div { background: linear-gradient(90deg, #27cc72, var(--ok)); }
 .progress.warn > div { background: linear-gradient(90deg, #f0a40a, var(--warn)); }
@@ -492,10 +548,12 @@ table.data-table { width: 100%; border-collapse: collapse; }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
 .modal {
-  background: var(--bg-elev);
+  background: var(--glass-strong);
+  backdrop-filter: blur(22px) saturate(1.25);
+  -webkit-backdrop-filter: blur(22px) saturate(1.25);
   border: 1px solid var(--border);
   border-radius: 14px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), inset 0 1px 0 var(--glass-topline);
   width: 560px;
   margin-top: 11vh;
   animation: pop .18s ease;
@@ -528,7 +586,9 @@ table.data-table { width: 100%; border-collapse: collapse; }
 }
 .drawer {
   width: 480px; max-width: 92vw; height: 100%;
-  background: var(--bg-elev);
+  background: var(--glass-strong);
+  backdrop-filter: blur(22px) saturate(1.25);
+  -webkit-backdrop-filter: blur(22px) saturate(1.25);
   border-left: 1px solid var(--border);
   box-shadow: var(--shadow);
   display: flex; flex-direction: column;
@@ -575,7 +635,10 @@ table.data-table { width: 100%; border-collapse: collapse; }
   display: flex; flex-direction: column; gap: 10px;
 }
 .toast {
-  background: var(--bg-elev); border: 1px solid var(--border);
+  background: var(--glass-strong);
+  backdrop-filter: blur(18px) saturate(1.25);
+  -webkit-backdrop-filter: blur(18px) saturate(1.25);
+  border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
   border-radius: var(--radius-sm);
   padding: 12px 16px; min-width: 280px; max-width: 380px;
@@ -602,7 +665,11 @@ table.data-table { width: 100%; border-collapse: collapse; }
 .check-row input { accent-color: var(--accent); }
 
 .empty-state { text-align: center; padding: 70px 20px; color: var(--text-faint); }
-.empty-state svg { width: 46px; height: 46px; margin-bottom: 14px; opacity: .5; }
+.empty-state svg { width: 46px; height: 46px; margin-bottom: 14px; opacity: .5; animation: es-breathe 3.4s ease-in-out infinite; }
+@keyframes es-breathe {
+  0%, 100% { transform: translateY(0); opacity: .45; }
+  50% { transform: translateY(-5px); opacity: .75; }
+}
 .empty-state .es-title { font-size: 15px; font-weight: 600; color: var(--text-dim); margin-bottom: 5px; }
 .empty-state .es-body { font-size: 13px; margin-bottom: 18px; }
 
@@ -625,8 +692,39 @@ table.data-table { width: 100%; border-collapse: collapse; }
   opacity: 1;
   transition: opacity .55s var(--ease-kiosk);
 }
-/* === Global ambient background: slow moving soft orbs (z:-2) === */
+/* === Global ambient scene (z:-2) =====================================
+   A layered stage set, back to front:
+   aurora bands → blurred orbs → engineering grid → star dust → vignette.
+   Every layer is slow (20s+ periods) and low-contrast so it reads as
+   atmosphere, not motion. High-contrast theme drops the whole scene. */
 .bgfx { position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none; }
+
+/* Aurora — three immense hue-shifted gradient bands drifting past each other */
+.bg-aurora { position: absolute; inset: -22%; filter: blur(72px); }
+.bg-aurora .au { position: absolute; border-radius: 50%; }
+.bg-aurora .a1 {
+  width: 66%; height: 44%; left: -10%; top: 2%;
+  background: radial-gradient(closest-side, rgba(37, 99, 235, 0.2), transparent 72%);
+  animation: au-drift 36s ease-in-out infinite alternate;
+}
+.bg-aurora .a2 {
+  width: 72%; height: 48%; right: -14%; top: 32%;
+  background: radial-gradient(closest-side, rgba(34, 211, 238, 0.12), transparent 72%);
+  animation: au-drift 44s ease-in-out infinite alternate-reverse;
+}
+.bg-aurora .a3 {
+  width: 58%; height: 42%; left: 20%; bottom: -8%;
+  background: radial-gradient(closest-side, rgba(139, 92, 246, 0.14), transparent 72%);
+  animation: au-drift 50s ease-in-out infinite alternate;
+  animation-delay: -14s;
+}
+@keyframes au-drift {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  50%  { transform: translate3d(6vw, -3vh, 0) rotate(4deg) scale(1.08); }
+  100% { transform: translate3d(-4vw, 4vh, 0) rotate(-3deg) scale(0.96); }
+}
+
+/* Soft orbs — the original three glow sources, kept as the middle layer */
 .bg-orb {
   position: absolute; border-radius: 50%; filter: blur(90px);
   animation: bg-orbit 18s ease-in-out infinite alternate;
@@ -656,12 +754,87 @@ table.data-table { width: 100%; border-collapse: collapse; }
   75%  { transform: translate(30px, 30px) scale(1.04); }
   100% { transform: translate(-40px, -20px) scale(1); }
 }
-/* Light theme: soften the orbs so cards stay readable */
+
+/* Engineering grid — the terminal's blueprint, faded out toward the edges */
+.bg-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(130, 170, 235, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(130, 170, 235, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(1050px 720px at 55% 46%, #000 0%, transparent 80%);
+          mask-image: radial-gradient(1050px 720px at 55% 46%, #000 0%, transparent 80%);
+}
+
+/* Star dust — tiny glints slowly rising, like data settling out of the air */
+.bg-stars i {
+  position: absolute; width: 3px; height: 3px; border-radius: 50%;
+  background: rgba(190, 215, 255, 0.55);
+  animation: star-rise linear infinite;
+}
+.bg-stars i:nth-child(1)  { left: 6%;  bottom: -4%; --tw: .35; animation-duration: 19s; }
+.bg-stars i:nth-child(2)  { left: 16%; bottom: -2%; --tw: .55; animation-duration: 26s; animation-delay: -8s; }
+.bg-stars i:nth-child(3)  { left: 24%; bottom: -6%; --tw: .3;  animation-duration: 22s; animation-delay: -15s; width: 2px; height: 2px; }
+.bg-stars i:nth-child(4)  { left: 33%; bottom: -3%; --tw: .5;  animation-duration: 30s; animation-delay: -4s; }
+.bg-stars i:nth-child(5)  { left: 41%; bottom: -5%; --tw: .4;  animation-duration: 24s; animation-delay: -19s; }
+.bg-stars i:nth-child(6)  { left: 50%; bottom: -2%; --tw: .6;  animation-duration: 28s; animation-delay: -11s; }
+.bg-stars i:nth-child(7)  { left: 58%; bottom: -6%; --tw: .35; animation-duration: 21s; animation-delay: -6s; width: 2px; height: 2px; }
+.bg-stars i:nth-child(8)  { left: 66%; bottom: -3%; --tw: .5;  animation-duration: 33s; animation-delay: -23s; }
+.bg-stars i:nth-child(9)  { left: 74%; bottom: -5%; --tw: .3;  animation-duration: 25s; animation-delay: -13s; }
+.bg-stars i:nth-child(10) { left: 82%; bottom: -2%; --tw: .55; animation-duration: 27s; animation-delay: -17s; }
+.bg-stars i:nth-child(11) { left: 90%; bottom: -6%; --tw: .4;  animation-duration: 31s; animation-delay: -2s; width: 2px; height: 2px; }
+.bg-stars i:nth-child(12) { left: 12%; bottom: -7%; --tw: .45; animation-duration: 29s; animation-delay: -25s; }
+.bg-stars i:nth-child(13) { left: 46%; bottom: -8%; --tw: .35; animation-duration: 23s; animation-delay: -9s; width: 2px; height: 2px; }
+.bg-stars i:nth-child(14) { left: 70%; bottom: -7%; --tw: .5;  animation-duration: 34s; animation-delay: -20s; }
+@keyframes star-rise {
+  0%   { transform: translateY(0);    opacity: 0; }
+  10%  { opacity: var(--tw, .45); }
+  85%  { opacity: var(--tw, .45); }
+  100% { transform: translateY(-18vh); opacity: 0; }
+}
+
+/* Vignette — pulls focus back toward the working area */
+.bg-vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(120% 92% at 50% 32%, transparent 52%, rgba(4, 7, 12, 0.5) 100%);
+}
+
+/* Light theme: soften every layer so cards stay readable */
+[data-theme='light'] .bg-aurora { opacity: .55; }
 [data-theme='light'] .bg-orb { opacity: .18; }
+[data-theme='light'] .bg-grid { opacity: .45; }
+[data-theme='light'] .bg-stars i { opacity: .35; }
+[data-theme='light'] .bg-vignette {
+  background: radial-gradient(120% 92% at 50% 32%, transparent 58%, rgba(214, 223, 236, 0.5) 100%);
+}
 /* High contrast: no ambient decoration at all */
 [data-theme='high-contrast'] .bgfx { display: none; }
+[data-theme='high-contrast'] .topbar,
+[data-theme='high-contrast'] .sidebar,
+[data-theme='high-contrast'] .modal,
+[data-theme='high-contrast'] .drawer,
+[data-theme='high-contrast'] .toast { background: var(--bg-elev); backdrop-filter: none; -webkit-backdrop-filter: none; }
+
 @media (prefers-reduced-motion: reduce) {
-  .bg-orb { animation: none; }
+  .bg-orb, .bg-aurora .au, .bg-stars i { animation: none; }
+  .progress > div::after { animation: none; display: none; }
+  .empty-state svg { animation: none; }
+}
+
+/* ---------- view transitions ---------- */
+/* route() re-triggers .view-enter on every navigation; children stagger in */
+.content.view-enter > * { animation: view-in .34s var(--ease-kiosk) both; }
+.content.view-enter > *:nth-child(2) { animation-delay: .045s; }
+.content.view-enter > *:nth-child(3) { animation-delay: .09s; }
+.content.view-enter > *:nth-child(4) { animation-delay: .135s; }
+.content.view-enter > *:nth-child(5) { animation-delay: .18s; }
+.content.view-enter > *:nth-child(n+6) { animation-delay: .22s; }
+@keyframes view-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .content.view-enter > * { animation: none; }
 }
 
 /* Faint engineering grid, fading out toward the edges (z:-1 behind orbs) */

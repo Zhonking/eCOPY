@@ -36,7 +36,7 @@
     -webkit-backdrop-filter: blur(20px);
     display: flex;
     flex-direction: column;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
   }
   .titlebar {
     -webkit-app-region: drag;
@@ -108,7 +108,16 @@
     background: linear-gradient(90deg, var(--accent), #60a5fa);
     border-radius: 4px;
     transition: width 0.4s ease;
+    position: relative;
+    overflow: hidden;
   }
+  .bar > div::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+    transform: translateX(-100%);
+    animation: fl-shimmer 1.7s ease-in-out infinite;
+  }
+  @keyframes fl-shimmer { 60%, 100% { transform: translateX(100%); } }
   .stats {
     display: flex;
     justify-content: space-between;
