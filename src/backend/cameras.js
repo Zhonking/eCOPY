@@ -1,12 +1,21 @@
 // Camera-card detection & metadata extraction.
 // Supports ARRI (AVF/MXF + ARRIMEDIA/.ari), RED (.RDC/.R3D),
-// Sony (XAVC M4ROOT, XDCAM PRO/, Venice PRIVATE/SONY),
-// Blackmagic (.braw / reel folders), Canon (.crm / CONTENTS / DCIM), generic DCF.
+// Sony (XAVC M4ROOT, XDCAM PRO/, Venice PRIVATE/SONY, .ARW, MSDCF),
+// Blackmagic (.braw / reel folders), Canon (.crm / CONTENTS / DCIM / CR2/CR3),
+// Panasonic (P2 / .rdf / .rw2), DJI (DJI_ clips / DCIM folders),
+// Nikon (.nef/.nrw / 100NIKON / 1xxNCxx), GoPro (1xxGOPRO),
+// Fujifilm (.raf), Olympus (.orf), Pentax (.pef), Sigma (.x3f),
+// Insta360 (.insv/.insp), generic DCF.
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { basename, dirname, normalizeRel } from '../shared/util.js';
 
 const MEDIA_EXTS = new Set([
-  '.r3d', '.braw', '.crm', '.ari', '.mxf', '.mp4', '.mov', '.mts', '.m2ts', '.m4v', '.avi'
+  '.r3d', '.braw', '.crm', '.ari', '.mxf', '.mp4', '.mov', '.mts', '.m2ts', '.m4v', '.avi',
+  // Stills & RAW — photo cards (DJI/Nikon/GoPro/α) offload too, and they
+  // must feed the shooting-date filter just like video clips.
+  '.jpg', '.jpeg', '.dng',
+  '.nef', '.nrw', '.arw', '.cr2', '.cr3', '.raf', '.orf', '.rw2', '.pef', '.x3f',
+  '.insv', '.insp'
 ]);
 const SIDECAR_EXTS = new Set(['.xml', '.rmd', '.sidecar', '.smi', '.cxml', '.mif']);
 
@@ -17,6 +26,14 @@ export const CAMERA_INFO = {
   BLACKMAGIC: { label: 'Blackmagic', color: '#ec6699' },
   CANON: { label: 'Canon', color: '#cc0000' },
   PANASONIC: { label: 'Panasonic', color: '#0a6ebd' },
+  DJI: { label: 'DJI 大疆', color: '#4c8dff' },
+  NIKON: { label: 'Nikon 尼康', color: '#ffe100' },
+  GOPRO: { label: 'GoPro', color: '#009ae0' },
+  FUJIFILM: { label: 'Fujifilm', color: '#d7182a' },
+  OLYMPUS: { label: 'Olympus/OM', color: '#1a73c7' },
+  PENTAX: { label: 'Pentax/Ricoh', color: '#d61f26' },
+  SIGMA: { label: 'Sigma', color: '#a67c52' },
+  INSTA360: { label: 'Insta360', color: '#f5a623' },
   GENERIC: { label: 'Generic / DCF', color: '#8b93a7' }
 };
 
@@ -118,18 +135,44 @@ export function detectCamera(paths) {
   if (hasDir('avf') || hasDir('arrimedia') || has((x) => x.endsWith('.ari'))) {
     return { brand: 'ARRI', structure: hasDir('arrimedia') || has((x) => x.endsWith('.ari')) ? 'ARRI_ARRIRAW' : 'ARRI_MXF' };
   }
+  // DJI drones / Osmo / Ronin: every clip & still is prefixed DJI_
+  // (DJI_0001.MP4, DJI_0123.JPG, DJI_2026...MP4), usually under DCIM/100MEDIA.
+  if (has((x) => /(^|\/)dji[_-][^/]+\.(mp4|mov|mxf|avi|jpg|jpeg|dng|raw)$/i.test(x))) {
+    return { brand: 'DJI', structure: 'DJI_MEDIA' };
+  }
+  if (has((x) => /\.(insv|insp)$/i.test(x))) return { brand: 'INSTA360', structure: 'INSTA360_MEDIA' };
   if (hasDir('private/m4root')) return { brand: 'SONY', structure: 'SONY_XAVC' };
   if (p.some((x) => x.startsWith('private/sony/'))) return { brand: 'SONY', structure: 'SONY_VENICE' };
   if (hasDir('pro/clip')) return { brand: 'SONY', structure: 'SONY_XDCAM' };
   if (hasDir('contents') && has((x) => x.endsWith('.mxf'))) return { brand: 'CANON', structure: 'CANON_XF' };
   if (hasDir('private/pana_grp') || has((x) => x.endsWith('.rdf'))) return { brand: 'PANASONIC', structure: 'PANA_P2' };
+  // RAW stills identify the maker unambiguously.
+  if (has((x) => /\.(nef|nrw)$/i.test(x))) return { brand: 'NIKON', structure: 'NIKON_RAW' };
+  if (has((x) => /\.arw$/i.test(x))) return { brand: 'SONY', structure: 'SONY_RAW' };
+  if (has((x) => /\.(cr2|cr3)$/i.test(x))) return { brand: 'CANON', structure: 'CANON_RAW' };
+  if (has((x) => /\.raf$/i.test(x))) return { brand: 'FUJIFILM', structure: 'FUJIFILM_RAW' };
+  if (has((x) => /\.orf$/i.test(x))) return { brand: 'OLYMPUS', structure: 'OLYMPUS_RAW' };
+  if (has((x) => /\.rw2$/i.test(x))) return { brand: 'PANASONIC', structure: 'PANA_RAW' };
+  if (has((x) => /\.pef$/i.test(x))) return { brand: 'PENTAX', structure: 'PENTAX_RAW' };
+  if (has((x) => /\.x3f$/i.test(x))) return { brand: 'SIGMA', structure: 'SIGMA_RAW' };
   // BMD reel folders at root: A001/...braw/mov
   if (has((x) => /^[a-z]\d{3}\//.test(x) && /\.(mov|braw)$/.test(x))) {
     return { brand: 'BLACKMAGIC', structure: 'BMD_REEL' };
   }
   if (hasDir('dcim')) {
+    // DCIM folder names follow DCF with a maker tag: 100CANON, 101RED01,
+    // 100___NI, 100NCZ8, 100NIKON, 100GOPRO, 100MSDCF, 100FUJI, 100OLYMP…
     if (has((x) => /dcim\/\d*canon/.test(x))) return { brand: 'CANON', structure: 'CANON_DCF' };
     if (has((x) => /dcim\/\d*pana/.test(x))) return { brand: 'PANASONIC', structure: 'PANA_DCF' };
+    // Nikon folders: 100NIKON (Coolpix/1) or 100NC<DSC-model> (Z & DSLR:
+    // 100NCZ8, 100NCD850, 101NCD850…); 100___NI is the Z-series alt layout.
+    if (has((x) => /dcim\/\d*(nikon|nc\w{1,5}|_{3}ni)\b/i.test(x))) return { brand: 'NIKON', structure: 'NIKON_DCF' };
+    if (has((x) => /dcim\/\d*dji/.test(x))) return { brand: 'DJI', structure: 'DJI_DCF' };
+    if (has((x) => /dcim\/\d*gopro/.test(x))) return { brand: 'GOPRO', structure: 'GOPRO_DCF' };
+    if (has((x) => /dcim\/\d*msdcf/.test(x))) return { brand: 'SONY', structure: 'SONY_DCF' };
+    if (has((x) => /dcim\/\d*_?fuji/.test(x))) return { brand: 'FUJIFILM', structure: 'FUJIFILM_DCF' };
+    if (has((x) => /dcim\/\d*olymp/.test(x))) return { brand: 'OLYMPUS', structure: 'OLYMPUS_DCF' };
+    if (has((x) => /dcim\/\d*pentx/.test(x))) return { brand: 'PENTAX', structure: 'PENTAX_DCF' };
     return { brand: 'GENERIC', structure: 'DCF' };
   }
   return { brand: 'GENERIC', structure: 'UNKNOWN' };
@@ -218,6 +261,20 @@ function parseSonyClip(name) {
   return m ? { take: String(parseInt(m[1], 10)) } : null;
 }
 
+// Indexed-clip brands: extract just the running number.
+//   DJI:   DJI_0123 → 123        Nikon: DSC_0123 / DSCN0123 / NC1_0123 → 123
+//   GoPro: GS0123 / GX0100123 → 123 / 100123
+function parseIndexedTake(name, re) {
+  const m = name.match(re);
+  return m ? { take: String(parseInt(m[m.length - 1], 10)) } : null;
+}
+const TAKE_PATTERNS = {
+  DJI: /^DJI[_-]?0*(\d{1,5})$/i,
+  GOPRO: /^G[SXH]\d?0*(\d{3,6})$/i,
+  NIKON: /^(?:DSCN?|NC\d)[_-]?0*(\d{3,5})$/i,
+  INSTA360: /^(?:INS\d?_|VID|IMG)[_-]?\d*0*(\d{2,5})$/i
+};
+
 // Determine the shooting date (YYYY-MM-DD) of a file.
 // Prefer the date encoded in the clip name:
 //   ARRI:   A001C001_21090101_C001.mxf  → YYMMDD (+ camera-id tail)
@@ -305,7 +362,8 @@ export async function scanSource(rootPath, volumeLabel = null) {
     delete merged._has;
     const parsed =
       parseClipName(stem) ||
-      (detection.brand === 'SONY' ? parseSonyClip(stem) : {}) ||
+      (detection.brand === 'SONY' ? parseSonyClip(stem) : null) ||
+      (TAKE_PATTERNS[detection.brand] ? parseIndexedTake(stem, TAKE_PATTERNS[detection.brand]) : null) ||
       {};
     clip.name = stem;
     clip.shootDate = shootDateOf(clip.rel, clip.mtime);
