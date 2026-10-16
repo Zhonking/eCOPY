@@ -1,5 +1,46 @@
 # Release Notes
 
+## v1.5.3 — 2026-10-11
+
+### Highlights
+
+- **磁盘连接协议标签** — 磁盘页物理盘名称旁新增连接协议徽标（NVMe / SATA / SAS / USB / CSMI / RAID，取自 smartctl 检测的设备类型，悬停显示「连接协议」说明）；一眼区分内置 NVMe、SATA 硬盘与读卡器桥接的 USB 卡
+- **卷与向导同步显示** — 整盘卷（如摄影机卡）按容量匹配到对应物理盘时，磁盘页卷行与向导「检测到的卡」卡片也会带协议标签；CFE-B 卡在读卡器里读作 NVMe，拷卡前即可确认连接形态。分区卷（如系统 C:）容量与整盘不符、不匹配时则正确地不显示
+
+### Improvements
+
+- 新增共享工具 `protocolLabel()` / `matchPhysicalForVolume()`（lib.js），协议显示名映射与 ±2% 容量匹配在磁盘页、向导两处复用；向导原有 SMART 匹配逻辑并入共享实现
+- 三语（中/日/英）「连接协议」悬停文案；前端缓存号 v34
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 1.5.3.exe`（NSIS 安装版） | 78.4 MB | `F560BBF8D6266FCE334084F5CF50A54A0DBCD690ADF67C037367AE46293D81A2` |
+| `eCOPY 1.5.3.exe`（便携版） | 78.1 MB | `9FE2CB16494660DBA258E9CB808E4FA46429EE8B07CC6A9B59CB1CFF361FACE9` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v1.5.3 — English
+
+### Highlights
+
+- **Disk connection-protocol tags** — physical disks on the Disks page now show a protocol badge next to their name (NVMe / SATA / SAS / USB / CSMI / RAID, from the smartctl device type; hover explains "Connection protocol") — tell internal NVMe, SATA drives and USB-bridged cards apart at a glance
+- **Volumes & wizard in sync** — whole-disk volumes (camera cards) capacity-matched to their physical disk also show the tag on the Disks page volume rows and the wizard's detected cards; a CFE-B card in a reader reads as NVMe, visible before you offload. Partitioned volumes (e.g. C:) correctly show nothing when no disk matches
+
+### Improvements
+
+- New shared helpers `protocolLabel()` / `matchPhysicalForVolume()` in lib.js — the protocol mapping and ±2% capacity matching are reused by both the Disks view and the wizard; the wizard's SMART matching now rides the same implementation
+- Trilingual hover copy; front-end cache version v34
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.5.2 — 2026-10-11
 
 ### Highlights

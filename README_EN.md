@@ -31,7 +31,7 @@ eCOPY is professional offload software for film and video production sets: it co
 - Safe eject flow and an explicit "Allow Formatting" confirmation
 
 ### System Monitoring
-- Volume list, free space and physical drive health (SMART)
+- Volume list, free space, physical drive health (SMART) and connection protocol (NVMe / SATA / SAS / USB)
 - SMART temperature monitoring (requires administrator privileges on Windows — one-click elevated restart from within the app)
 
 ### User Experience
