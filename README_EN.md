@@ -20,7 +20,7 @@ eCOPY is professional offload software for film and video production sets: it co
 - **Three-step wizard** — pick source card → pick targets & folder template → confirm and start; clickable drive cards, folder drag-and-drop, live selected-sources panel (files / size / est. time / type mix), click-back stepper
 - **Multi-target concurrent copy** — write to several drives at once, each leg with its own progress, speed and status
 - **Folder templates** — variables `{project} · {date} · {camera} · {reel} · {operator} · {volume} · {scene}`; organized by `Project/Date/Camera/Reel` by default
-- **Automatic camera-card detection** — external cards are detected on insertion; brand (ARRI / RED / Sony / Blackmagic / Canon / Panasonic), card type and reel are identified automatically
+- **Automatic camera-card detection** — external cards are detected on insertion; brand (ARRI / RED / Sony / Blackmagic / Canon / Panasonic / **DJI** / **Nikon** / GoPro / Fujifilm / Olympus / Pentax / Sigma / Insta360) is identified from the folder structure and file signatures, along with card type and reel
 - **Filter by shooting date** — when a card spans multiple days, pick which dates to copy (dates come from clip names, falling back to file dates); totals update live
 - **Conflict policy** — "fail with warning (safest)" by default, or "keep both, rename new file"
 - **Job history management** — every offload is auditable; delete individual jobs or clear finished ones in one click (running jobs are protected)

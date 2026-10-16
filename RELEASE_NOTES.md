@@ -1,5 +1,50 @@
 # Release Notes
 
+## v1.5.4 — 2026-10-11
+
+### Highlights
+
+- **新增 DJI（大疆）识别** — `DJI_` 前缀素材（DJI_0001.MP4 / DJI_0123.JPG 等，DJI 无人机、Osmo、Ronin 系列）与 `DCIM/1xxDJI` 目录结构自动识别为 DJI 卡，插卡即提示「DJI 大疆」，片段序号自动解析
+- **新增 Nikon（尼康）识别** — `.NEF` / `.NRW` RAW 素材、`DCIM/100NIKON`、`DCIM/1xxNCxx`（100NCZ8 / 100NCD850 等 Z 系列与单反目录）及 `100___NI` 布局全部识别，`DSC_` / `DSCN` / `NC1_` 片段号自动解析
+- **再补 7+ 个品牌** — GoPro（DCIM/1xxGOPRO）、Fujifilm（.RAF / 100_FUJI）、Olympus/OM（.ORF / 100OLYMP）、Sony α 照片卡（.ARW / 100MSDCF）、Canon 照片（.CR2 / .CR3）、Panasonic Lumix（.RW2）、Pentax（.PEF）、Sigma（.X3F）、Insta360（.INSV / .INSP）
+
+### Improvements
+
+- **照片与 RAW 计入媒体素材** — JPG / DNG / 各家 RAW 现在与视频一样进入素材列表、按拍摄日期筛选与统计；摄影+视频混合卡（无人机/微单）可整卡筛选拷贝
+- 识别规则维持「强信号优先」：品牌专属文件与目录结构优先，RAW 扩展名次之，最后回退通用 DCF；原有 ARRI / RED / Sony / BMD / Canon / Panasonic 识别不受影响（回归通过）
+- 插卡自动检测（probeCard）同步受益，新品牌插卡即弹提示
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 1.5.4.exe`（NSIS 安装版） | 78.4 MB | `1E607092B4B6A0E6C85B2D4113CFB4BEA9C822E5FD9F6BF19905DE830F368D77` |
+| `eCOPY 1.5.4.exe`（便携版） | 78.1 MB | `324E4A42C83E6B9EE147F10AAE25DE64F7DB2225F7FA93B7FAC09CB777FE37A0` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v1.5.4 — English
+
+### Highlights
+
+- **DJI detection** — cards with `DJI_`-prefixed clips (drones, Osmo, Ronin) or `DCIM/1xxDJI` folders are recognised as DJI on insertion, with clip numbers parsed automatically
+- **Nikon detection** — `.NEF` / `.NRW` RAWs, `DCIM/100NIKON`, `DCIM/1xxNCxx` (100NCZ8 / 100NCD850 — Z & DSLR layouts) and `100___NI` structures all identify as Nikon; `DSC_` / `DSCN` / `NC1_` clip numbers parsed
+- **Seven more brands** — GoPro (1xxGOPRO), Fujifilm (.RAF / 100_FUJI), Olympus/OM (.ORF), Sony α photo cards (.ARW / 100MSDCF), Canon stills (.CR2/.CR3), Panasonic Lumix (.RW2), Pentax (.PEF), Sigma (.X3F) and Insta360 (.INSV/.INSP)
+
+### Improvements
+
+- **Stills & RAW count as media** — JPG / DNG / vendor RAWs now join clips, the shooting-date filter and totals; hybrid photo+video cards (drones, mirrorless) can be filtered and offloaded as a whole
+- Detection keeps strong-signals-first ordering (brand files & folders → RAW extensions → generic DCF); existing ARRI / RED / Sony / BMD / Canon / Panasonic detection is unchanged (regression-tested)
+- Card-insert auto-probe benefits automatically — new brands announce themselves on insertion
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.5.3 — 2026-10-11
 
 ### Highlights
