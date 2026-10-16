@@ -90,6 +90,32 @@ export function eta(sec) {
   return h ? `${h}h ${String(m).padStart(2,'0')}m` : m ? `${m}m ${String(s).padStart(2,'0')}s` : `${s}s`;
 }
 
+// ---------- disk helpers ----------
+// Map a smartctl device type ("-d nvme/ata/sat/scsi/usb…") to a friendly
+// connection-protocol label. Empty string means "unknown — render nothing".
+export function protocolLabel(protocol) {
+  if (!protocol) return '';
+  const s = String(protocol).toLowerCase();
+  if (s.includes('nvme')) return 'NVMe';
+  if (s.includes('usb')) return 'USB';
+  if (/sat|ata/.test(s)) return 'SATA';
+  if (/scsi|sas/.test(s)) return 'SAS';
+  if (s.includes('csmi')) return 'CSMI';
+  if (s.includes('raid')) return 'RAID';
+  return '';
+}
+
+// Best-effort volume → physical-disk match: smartctl reports physical disks
+// without partition letters, so match on capacity (±2%). Whole-disk volumes
+// (camera cards) match reliably; partitioned system volumes usually don't,
+// which is the correct outcome.
+export function matchPhysicalForVolume(v, physical) {
+  if (!v?.size || !physical?.length) return null;
+  return physical.find(
+    (p) => p.size > 0 && Math.abs(p.size - v.size) / Math.max(p.size, v.size) < 0.02
+  ) || null;
+}
+
 // ---------- toasts ----------
 let toastHistory = [];
 export function toast(title, body = '', kind = 'info', timeout = 5000) {

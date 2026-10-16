@@ -1,8 +1,8 @@
 // Three-step offload wizard: sources → targets/template → review & start.
-import { h, icon, clear, formatBytes, eta, toast } from './lib.js?v=33';
-import { api } from './api.js?v=33';
-import { openPathBrowser } from './browser.js?v=33';
-import { t } from './i18n.js?v=33';
+import { h, icon, clear, formatBytes, eta, toast, protocolLabel, matchPhysicalForVolume } from './lib.js?v=34';
+import { api } from './api.js?v=34';
+import { openPathBrowser } from './browser.js?v=34';
+import { t } from './i18n.js?v=34';
 
 let state = null;
 let starting = false;
@@ -183,21 +183,15 @@ function sourceCard(src, appState) {
   ]);
 }
 
-// Best-effort SMART lookup for a removable volume: smartctl reports physical
-// disks without partition letters, so match on capacity (±2%).
-function smartForVolume(v, physical) {
-  if (!v.removable || !physical?.length) return null;
-  return physical.find(
-    (p) => p.size > 0 && Math.abs(p.size - v.size) / Math.max(p.size, v.size) < 0.02
-  ) || null;
-}
-
 function volumeCard(v, appState) {
   const added = state.sources.some((s) => s.path === v.path);
   const used = Math.max(0, v.size - v.free);
   const pct = v.size ? Math.min(100, Math.round((used / v.size) * 100)) : 0;
-  const phys = smartForVolume(v, appState.physical);
+  // Capacity-matched physical disk (see lib.js): protocol shows for any
+  // whole-disk volume, SMART temp/health stay removable-only.
+  const phys = matchPhysicalForVolume(v, appState.physical);
   const healthOk = phys?.health ? /passed|ok/i.test(phys.health) : false;
+  const proto = protocolLabel(phys?.protocol);
   return h('button', {
     class: 'pick-card vol-card' + (added ? ' is-sel' : ''),
     onClick: () => (added
@@ -218,10 +212,11 @@ function volumeCard(v, appState) {
     ]),
     h('div', { class: 'vol-tags' }, [
       v.removable ? h('span', { class: 'brand-tag' }, t('wiz.removable')) : null,
-      phys?.tempC != null
+      proto ? h('span', { class: 'pill plain accent', title: t('disks.protocol') }, proto) : null,
+      v.removable && phys?.tempC != null
         ? h('span', { class: `pill plain ${phys.tempC >= 60 ? 'warn' : 'ok'}` }, `${phys.tempC} °C`)
         : null,
-      phys?.health
+      v.removable && phys?.health
         ? h('span', { class: `pill plain ${healthOk ? 'ok' : 'warn'}` }, `SMART ${healthOk ? 'OK' : phys.health}`)
         : null
     ])

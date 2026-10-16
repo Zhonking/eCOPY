@@ -1,7 +1,7 @@
 // Disks & volumes view with space bars and physical health.
-import { h, icon, clear, formatBytes, toast } from './lib.js?v=33';
-import { api } from './api.js?v=33';
-import { t } from './i18n.js?v=33';
+import { h, icon, clear, formatBytes, toast, protocolLabel, matchPhysicalForVolume } from './lib.js?v=34';
+import { api } from './api.js?v=34';
+import { t } from './i18n.js?v=34';
 
 export function renderDisks(mount, appState) {
   clear(mount);
@@ -16,7 +16,7 @@ export function renderDisks(mount, appState) {
   mount.appendChild(h('div', { class: 'card', style: { marginBottom: '18px' } }, [
     h('div', { class: 'section-title', style: { marginTop: '0' } }, t('disks.volumes')),
     ...(appState.volumes.length
-      ? appState.volumes.map(volumeRow)
+      ? appState.volumes.map((v) => volumeRow(v, appState.physical))
       : [h('div', { class: 'faint' }, t('disks.noVolumes'))])
   ]));
 
@@ -56,16 +56,20 @@ function tempAdminNotice() {
   ]);
 }
 
-function volumeRow(v) {
+function volumeRow(v, physical = []) {
   const usedPct = v.size ? ((v.size - v.free) / v.size) * 100 : 0;
   const barCls = usedPct > 92 ? 'full' : usedPct > 78 ? 'high' : '';
+  // Whole-disk volumes (camera cards) match a physical disk by capacity —
+  // show its connection protocol next to the label.
+  const proto = protocolLabel(matchPhysicalForVolume(v, physical)?.protocol);
   return h('div', { class: 'disk-row' }, [
     h('div', { class: 'disk-letter' }, v.mount.replace(':', '')),
     h('div', { class: 'disk-info' }, [
       h('div', { class: 'dn' }, [
         h('b', {}, v.label || t('disks.noLabel')),
         v.removable ? h('span', { class: 'pill accent plain' }, t('disks.removable')) : null,
-        h('span', { class: 'pill plain' }, v.fs)
+        h('span', { class: 'pill plain' }, v.fs),
+        proto ? h('span', { class: 'pill plain accent', title: t('disks.protocol') }, proto) : null
       ]),
       h('div', { class: `disk-bar ${barCls}` }, [h('div', { style: { width: `${usedPct}%` } })])
     ]),
@@ -88,9 +92,16 @@ function physicalTable(rows) {
       h('th', {}, t('disks.drive')), h('th', {}, t('disks.type')), h('th', {}, t('disks.health')),
       h('th', {}, t('disks.status')), h('th', {}, t('disks.temp')), h('th', {}, t('disks.size'))
     ])),
-    h('tbody', {}, rows.map((r) =>
-      h('tr', {}, [
-        h('td', {}, r.name),
+    h('tbody', {}, rows.map((r) => {
+      const proto = protocolLabel(r.protocol);
+      return h('tr', {}, [
+        h('td', {}, [
+          r.name,
+          proto ? h('span', {
+            class: 'pill plain accent', title: t('disks.protocol'),
+            style: { marginLeft: '8px' }
+          }, proto) : null
+        ]),
         h('td', {}, r.mediaType),
         h('td', {}, h('span', {
           class: 'pill ' + (/healthy/i.test(r.health) ? 'ok' : r.health ? 'warn' : 'plain')
@@ -98,7 +109,7 @@ function physicalTable(rows) {
         h('td', {}, r.status),
         h('td', {}, tempCell(r)),
         h('td', {}, formatBytes(r.size))
-      ])
-    ))
+      ]);
+    }))
   ]);
 }
