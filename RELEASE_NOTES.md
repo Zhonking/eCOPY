@@ -1,5 +1,49 @@
 # Release Notes
 
+## v1.5.6 — 2026-10-17
+
+### Highlights
+
+- **向导界面视觉精修** — 针对新建拷卡页的系统性打磨：标题加重并加渐变强调（随主题自适应），步骤条重设计为胶囊样式——当前步骤整颗胶囊蓝色高亮+数字发光，完成步骤绿色可点击回退，连接线自适应伸展
+
+### Improvements
+
+- 摘要面板：标题旁新增源卡计数徽标；统计行改为虚线分隔+右对齐等宽数字，信息分组更清晰
+- 检测到的驱动器卡片统一最小高度，底部标签对齐；选中卡带蓝色确认色调、「已添加 ✓」转绿
+- 底部操作栏「继续 →」主按钮加大（更醒目的行动指引），中部已选摘要字号提升
+- 检测卡与源卡网格加入错峰入场动画（页面切换后卡片依次浮现）；尊重 prefers-reduced-motion
+- 前端缓存号 v36
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 1.5.6.exe`（NSIS 安装版） | 78.4 MB | `E547703B7AA13726963268C5902775A9FA98B521DEBBAAC5592A7FA5E8CB72AE` |
+| `eCOPY 1.5.6.exe`（便携版） | 78.2 MB | `49CD37E9E5FC596C4E724E56450FE1978F831220619A6737DE65516FA1C14FC1` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v1.5.6 — English
+
+### Highlights
+
+- **Wizard visual polish** — a systematic pass over the New Offload page: a heavier gradient page title (theme-aware) and a redesigned pill-style stepper — the active step fills with an accent-tinted pill and a glowing number, completed steps turn green and stay clickable, connector lines flex to fit
+
+### Improvements
+
+- Summary panel: source-count badge next to the heading; stat rows gain dotted separators with right-aligned tabular numbers
+- Detected drive cards share a minimum height with bottom-aligned tags; the selected card gets a confident blue tint and a green "Added ✓"
+- A larger "Next →" primary button in the footer; clearer running summary text
+- Staggered entrance animation for the detected/sources card grids (reduced-motion respected); cache v36
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.5.5 — 2026-10-17
 
 ### Highlights
