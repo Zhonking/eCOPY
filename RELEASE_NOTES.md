@@ -1,5 +1,48 @@
 # Release Notes
 
+## v1.5.5 — 2026-10-17
+
+### Highlights
+
+- **区间首末照片预览弹窗** — 在向导中**添加源卡/文件夹**或**点选拍摄日期**时，弹出该选择区间内第一张与最后一张照片的预览：显示文件名与拍摄时间，确认选对了素材再继续
+- **JPG 直接显示，RAW 用内嵌略缩图** — 边界照片是 JPG 时直接输出原图；存在同文件名 JPG（RAW+JPG 双格式拍摄）时优先使用 JPG；纯 RAW（NEF/NRW/ARW/CR2/CR3/RAF/ORF/RW2/PEF/DNG/X3F/INSP）则自动提取文件内嵌的 JPEG 预览图显示
+
+### Improvements
+
+- 新增 `/api/thumb` 接口：JPG 直出、RAW 用原生扫描提取「最大 FFD8FF…FFD9 区段」内嵌预览（无需第三方依赖，各家 RAW 通用），带内存缓存避免重复解析
+- 弹窗内图片加载失败时优雅降级为「无法生成预览」文字；点击遮罩或 ✕ 关闭
+- 边界判定按文件名自然排序（相机命名即时间序）；三语文案；前端缓存号 v35
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 1.5.5.exe`（NSIS 安装版） | 78.4 MB | `3AEC1D0E5831439BDD182D88082A628374B4F5C2BCA9ECAAAD0FC91D8CF75374` |
+| `eCOPY 1.5.5.exe`（便携版） | 78.2 MB | `D8581A58CF819585FFE500897E720D0BF6586E91FFD065584038D99EA2F18445` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v1.5.5 — English
+
+### Highlights
+
+- **Boundary-photo preview popup** — adding a source card/folder or picking a shooting date in the wizard now pops up the first and last photo of that selection range, with filename and timestamp — confirm the right footage before you continue
+- **JPGs show directly, RAWs use embedded thumbnails** — JPG boundaries stream as-is; a stem-matched JPG sibling (RAW+JPG shooting pairs) wins when present; pure RAW files (NEF/NRW/ARW/CR2/CR3/RAF/ORF/RW2/PEF/DNG/X3F/INSP) fall back to their embedded JPEG preview
+
+### Improvements
+
+- New `/api/thumb` endpoint: JPGs served directly, RAW previews extracted by scanning for the largest FFD8FF…FFD9 span (works across every RAW flavour, zero dependencies) with an in-memory cache
+- Failed image loads degrade gracefully to a "no preview" note; close via backdrop or ✕
+- Boundaries follow natural filename sort (camera naming is chronological); trilingual copy; cache v35
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.5.4 — 2026-10-11
 
 ### Highlights
