@@ -1,5 +1,46 @@
 # Release Notes
 
+## v1.5.8 — 2026-10-17
+
+### Highlights
+
+- **背景动画明显度大幅提升** — 在 v1.5.7 基础上把动态效果调到「一眼可见」：极光色带亮度提升约 40%、漂移周期缩至 18–24 秒、摆幅加大到 14vw 并旋转 ±6°；三颗光斑不透明度 .42→.55、周期缩至 9–14 秒、游移幅度 ±110px
+- **星尘、流星、网格全面加密提亮** — 星点亮度与闪烁幅度增强（brightness 0.4↔2.1）、上浮加快至 15–23 秒且旅程加长到 30vh；流星增至三颗、拖尾更长更亮，间隔缩短为 13s/19s/27s；网格线亮度 +50%、遮罩范围扩大，扫光带更亮且每 14 秒扫过一次；暗角减淡让场景露出更多
+
+### Improvements
+
+- 亮色主题/高对比主题/减动效的适配规则不变（亮色自动柔化并隐藏流星、高对比关闭全部、reduced-motion 全停）
+- 前端缓存号 v38
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 1.5.8.exe`（NSIS 安装版） | 78.4 MB | `5F193EC720BBE734274F649428EA0D26B1A16C76140955204C84814C51E789DB` |
+| `eCOPY 1.5.8.exe`（便携版） | 78.2 MB | `0F08CF1921D20BA21D0A5BF47CE1E68795E3887195E8BFFAE175739410BACC0B` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v1.5.8 — English
+
+### Highlights
+
+- **Much more visible background motion** — aurora bands ~40% brighter at 18–24s periods with 14vw swings and ±6° rotation; orbs at .55 opacity on 9–14s cycles wandering ±110px
+- **Denser, brighter stars, comets and grid** — stronger twinkle (brightness 0.4↔2.1) on faster 15–23s rises; a third, longer, brighter comet at 13s/19s/27s intervals; grid lines +50% brighter with a wider mask and a stronger 14s sweep; lighter vignette reveals more of the scene
+
+### Improvements
+
+- Theme & reduced-motion behaviour unchanged (light softens/hides comets, high-contrast disables, reduced-motion stops everything)
+- Cache v38
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.5.7 — 2026-10-17
 
 ### Highlights
