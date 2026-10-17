@@ -1,5 +1,46 @@
 # Release Notes
 
+## v1.5.7 — 2026-10-17
+
+### Highlights
+
+- **背景动态效果显著增强** — 五层环境场景全面提速提幅，动态感肉眼可感知：极光色带漂移加快约 30%、幅度加大近一倍并加入明暗呼吸；三颗柔光光斑游移更快更远；星尘上浮旅程加长、尺寸微增，并新增独立**闪烁**节奏（亮度 2–4 秒脉冲）
+- **新增流星与网格扫光** — 两颗流星以 23s/34s 的不规则间隔斜划过背景；工程网格上有一道柔和光带每 22 秒扫过一次（扫描仪质感），页面静中有动
+
+### Improvements
+
+- 所有动画仍为纯 CSS（transform/opacity/filter），GPU 友好；亮色主题自动柔化并隐藏流星，高对比主题关闭全部背景，`prefers-reduced-motion` 下全部动画停用
+- 前端缓存号 v37
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 1.5.7.exe`（NSIS 安装版） | 78.4 MB | `B939E4607397777D0D5CA7794B3339DB9C1222F50DDB06E87D115FE48B0E3F2F` |
+| `eCOPY 1.5.7.exe`（便携版） | 78.2 MB | `0E1F582977135AAAC383AC81F0C8CF21CC4CC744F20F4692C722EA1BAAD8095D` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v1.5.7 — English
+
+### Highlights
+
+- **Markedly livelier background motion** — every ambient layer moves faster and further: aurora bands drift ~30% quicker at nearly double the amplitude with a new brightness breath; the three glow orbs wander faster; star dust travels higher, shines slightly larger and gains an independent twinkle (2–4s brightness pulses)
+- **Shooting stars & grid sweep** — two comets streak diagonally at irregular 23s/34s intervals; a soft light band sweeps the engineering grid every 22 seconds (scanner feel)
+
+### Improvements
+
+- Still pure-CSS animations (transform/opacity/filter) — GPU friendly; the light theme softens everything and hides comets, high-contrast disables the scene, reduced-motion stops every animation
+- Cache v37
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.5.6 — 2026-10-17
 
 ### Highlights
