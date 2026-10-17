@@ -715,58 +715,59 @@ table.data-table { width: 100%; border-collapse: collapse; }
 .bg-aurora .au { position: absolute; border-radius: 50%; }
 .bg-aurora .a1 {
   width: 66%; height: 44%; left: -10%; top: 2%;
-  background: radial-gradient(closest-side, rgba(37, 99, 235, 0.2), transparent 72%);
-  animation: au-drift 36s ease-in-out infinite alternate;
+  background: radial-gradient(closest-side, rgba(37, 99, 235, 0.22), transparent 72%);
+  animation: au-drift 26s ease-in-out infinite alternate;
 }
 .bg-aurora .a2 {
   width: 72%; height: 48%; right: -14%; top: 32%;
-  background: radial-gradient(closest-side, rgba(34, 211, 238, 0.12), transparent 72%);
-  animation: au-drift 44s ease-in-out infinite alternate-reverse;
+  background: radial-gradient(closest-side, rgba(34, 211, 238, 0.14), transparent 72%);
+  animation: au-drift 31s ease-in-out infinite alternate-reverse;
 }
 .bg-aurora .a3 {
   width: 58%; height: 42%; left: 20%; bottom: -8%;
-  background: radial-gradient(closest-side, rgba(139, 92, 246, 0.14), transparent 72%);
-  animation: au-drift 50s ease-in-out infinite alternate;
-  animation-delay: -14s;
+  background: radial-gradient(closest-side, rgba(139, 92, 246, 0.16), transparent 72%);
+  animation: au-drift 36s ease-in-out infinite alternate;
+  animation-delay: -10s;
 }
 @keyframes au-drift {
-  0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
-  50%  { transform: translate3d(6vw, -3vh, 0) rotate(4deg) scale(1.08); }
-  100% { transform: translate3d(-4vw, 4vh, 0) rotate(-3deg) scale(0.96); }
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); opacity: .8; }
+  50%  { transform: translate3d(11vw, -5vh, 0) rotate(5deg) scale(1.1); opacity: 1; }
+  100% { transform: translate3d(-7vw, 6vh, 0) rotate(-4deg) scale(0.95); opacity: .85; }
 }
 
 /* Soft orbs — the original three glow sources, kept as the middle layer */
 .bg-orb {
   position: absolute; border-radius: 50%; filter: blur(90px);
-  animation: bg-orbit 18s ease-in-out infinite alternate;
+  animation: bg-orbit 15s ease-in-out infinite alternate;
   opacity: .42;
 }
 .bg-orb.o1 {
   width: 520px; height: 520px; left: -120px; top: -120px;
   background: radial-gradient(circle, rgba(59,130,246,.55), rgba(59,130,246,0) 70%);
-  animation-duration: 22s;
+  animation-duration: 15s;
 }
 .bg-orb.o2 {
   width: 640px; height: 640px; right: -180px; bottom: -180px;
   background: radial-gradient(circle, rgba(47,224,127,.35), rgba(47,224,127,0) 70%);
-  animation-duration: 26s;
+  animation-duration: 18s;
   animation-direction: alternate-reverse;
 }
 .bg-orb.o3 {
   width: 460px; height: 460px; left: 40%; top: 40%;
   background: radial-gradient(circle, rgba(167,139,250,.38), rgba(167,139,250,0) 70%);
-  animation-duration: 20s;
-  animation-delay: -6s;
+  animation-duration: 13s;
+  animation-delay: -4s;
 }
 @keyframes bg-orbit {
   0%   { transform: translate(0, 0) scale(1); }
-  25%  { transform: translate(40px, -30px) scale(1.06); }
-  50%  { transform: translate(-20px, 50px) scale(0.96); }
-  75%  { transform: translate(30px, 30px) scale(1.04); }
-  100% { transform: translate(-40px, -20px) scale(1); }
+  25%  { transform: translate(70px, -50px) scale(1.08); }
+  50%  { transform: translate(-40px, 80px) scale(0.95); }
+  75%  { transform: translate(55px, 50px) scale(1.05); }
+  100% { transform: translate(-70px, -35px) scale(1); }
 }
 
-/* Engineering grid — the terminal's blueprint, faded out toward the edges */
+/* Engineering grid — the terminal's blueprint, faded out toward the edges.
+   A soft light band periodically sweeps across it (scanner feel). */
 .bg-grid {
   position: absolute; inset: 0;
   background-image:
@@ -776,32 +777,65 @@ table.data-table { width: 100%; border-collapse: collapse; }
   -webkit-mask-image: radial-gradient(1050px 720px at 55% 46%, #000 0%, transparent 80%);
           mask-image: radial-gradient(1050px 720px at 55% 46%, #000 0%, transparent 80%);
 }
-
-/* Star dust — tiny glints slowly rising, like data settling out of the air */
-.bg-stars i {
-  position: absolute; width: 3px; height: 3px; border-radius: 50%;
-  background: rgba(190, 215, 255, 0.55);
-  animation: star-rise linear infinite;
+.bg-grid::after {
+  content: ''; position: absolute; inset: -25% -70%;
+  background: linear-gradient(100deg,
+    transparent 44%, rgba(140, 180, 255, 0.055) 50%, transparent 56%);
+  animation: grid-sweep 22s linear infinite;
 }
-.bg-stars i:nth-child(1)  { left: 6%;  bottom: -4%; --tw: .35; animation-duration: 19s; }
-.bg-stars i:nth-child(2)  { left: 16%; bottom: -2%; --tw: .55; animation-duration: 26s; animation-delay: -8s; }
-.bg-stars i:nth-child(3)  { left: 24%; bottom: -6%; --tw: .3;  animation-duration: 22s; animation-delay: -15s; width: 2px; height: 2px; }
-.bg-stars i:nth-child(4)  { left: 33%; bottom: -3%; --tw: .5;  animation-duration: 30s; animation-delay: -4s; }
-.bg-stars i:nth-child(5)  { left: 41%; bottom: -5%; --tw: .4;  animation-duration: 24s; animation-delay: -19s; }
-.bg-stars i:nth-child(6)  { left: 50%; bottom: -2%; --tw: .6;  animation-duration: 28s; animation-delay: -11s; }
-.bg-stars i:nth-child(7)  { left: 58%; bottom: -6%; --tw: .35; animation-duration: 21s; animation-delay: -6s; width: 2px; height: 2px; }
-.bg-stars i:nth-child(8)  { left: 66%; bottom: -3%; --tw: .5;  animation-duration: 33s; animation-delay: -23s; }
-.bg-stars i:nth-child(9)  { left: 74%; bottom: -5%; --tw: .3;  animation-duration: 25s; animation-delay: -13s; }
-.bg-stars i:nth-child(10) { left: 82%; bottom: -2%; --tw: .55; animation-duration: 27s; animation-delay: -17s; }
-.bg-stars i:nth-child(11) { left: 90%; bottom: -6%; --tw: .4;  animation-duration: 31s; animation-delay: -2s; width: 2px; height: 2px; }
-.bg-stars i:nth-child(12) { left: 12%; bottom: -7%; --tw: .45; animation-duration: 29s; animation-delay: -25s; }
-.bg-stars i:nth-child(13) { left: 46%; bottom: -8%; --tw: .35; animation-duration: 23s; animation-delay: -9s; width: 2px; height: 2px; }
-.bg-stars i:nth-child(14) { left: 70%; bottom: -7%; --tw: .5;  animation-duration: 34s; animation-delay: -20s; }
+@keyframes grid-sweep {
+  from { transform: translateX(-46%); }
+  to   { transform: translateX(46%); }
+}
+
+/* Shooting stars — two comets streak diagonally at long irregular intervals */
+.bg-comets { position: absolute; inset: 0; }
+.bg-comets i {
+  position: absolute; width: 170px; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(200, 222, 255, 0.95));
+  filter: drop-shadow(0 0 6px rgba(160, 200, 255, 0.9));
+  opacity: 0;
+  transform: rotate(-32deg);
+}
+.bg-comets i:nth-child(1) { top: 14%; left: 68%; animation: comet-a 23s ease-in 6s infinite; }
+.bg-comets i:nth-child(2) { top: 30%; left: 88%; width: 120px; animation: comet-a 34s ease-in 19s infinite; }
+@keyframes comet-a {
+  0%, 3%  { transform: rotate(-32deg) translate(0, 0); opacity: 0; }
+  4%      { opacity: .95; }
+  15%, 100% { transform: rotate(-32deg) translate(-52vw, 34vh); opacity: 0; }
+}
+
+/* Star dust — glints rising with an independent twinkle: star-rise carries
+   the travel + fade envelope (transform/opacity), star-twinkle pulses
+   brightness (filter) on its own faster clock. */
+.bg-stars i {
+  position: absolute; width: 3.5px; height: 3.5px; border-radius: 50%;
+  background: rgba(190, 215, 255, 0.6);
+  animation: star-rise var(--dur, 26s) linear infinite, star-twinkle var(--twk, 3s) ease-in-out infinite;
+}
+.bg-stars i:nth-child(1)  { left: 6%;  bottom: -4%; --tw: .4;  --dur: 19s; --twk: 2.6s; }
+.bg-stars i:nth-child(2)  { left: 16%; bottom: -2%; --tw: .6;  --dur: 24s; --twk: 3.4s; animation-delay: -8s, -1s; }
+.bg-stars i:nth-child(3)  { left: 24%; bottom: -6%; --tw: .35; --dur: 21s; --twk: 2.2s; animation-delay: -15s, -2s; width: 2.5px; height: 2.5px; }
+.bg-stars i:nth-child(4)  { left: 33%; bottom: -3%; --tw: .55; --dur: 28s; --twk: 3.8s; animation-delay: -4s, -1.4s; }
+.bg-stars i:nth-child(5)  { left: 41%; bottom: -5%; --tw: .45; --dur: 22s; --twk: 2.9s; animation-delay: -19s, -0.7s; }
+.bg-stars i:nth-child(6)  { left: 50%; bottom: -2%; --tw: .65; --dur: 26s; --twk: 3.1s; animation-delay: -11s, -2.3s; }
+.bg-stars i:nth-child(7)  { left: 58%; bottom: -6%; --tw: .4;  --dur: 20s; --twk: 2.5s; animation-delay: -6s, -1.8s; width: 2.5px; height: 2.5px; }
+.bg-stars i:nth-child(8)  { left: 66%; bottom: -3%; --tw: .55; --dur: 30s; --twk: 3.6s; animation-delay: -23s, -0.9s; }
+.bg-stars i:nth-child(9)  { left: 74%; bottom: -5%; --tw: .35; --dur: 24s; --twk: 2.7s; animation-delay: -13s, -1.2s; }
+.bg-stars i:nth-child(10) { left: 82%; bottom: -2%; --tw: .6;  --dur: 25s; --twk: 3.3s; animation-delay: -17s, -2.1s; }
+.bg-stars i:nth-child(11) { left: 90%; bottom: -6%; --tw: .45; --dur: 29s; --twk: 2.4s; animation-delay: -2s, -1.6s; width: 2.5px; height: 2.5px; }
+.bg-stars i:nth-child(12) { left: 12%; bottom: -7%; --tw: .5;  --dur: 27s; --twk: 3s;   animation-delay: -25s, -0.5s; }
+.bg-stars i:nth-child(13) { left: 46%; bottom: -8%; --tw: .4;  --dur: 22s; --twk: 2.8s; animation-delay: -9s, -1.9s; width: 2.5px; height: 2.5px; }
+.bg-stars i:nth-child(14) { left: 70%; bottom: -7%; --tw: .55; --dur: 32s; --twk: 3.2s; animation-delay: -20s, -1.1s; }
 @keyframes star-rise {
   0%   { transform: translateY(0);    opacity: 0; }
   10%  { opacity: var(--tw, .45); }
   85%  { opacity: var(--tw, .45); }
-  100% { transform: translateY(-18vh); opacity: 0; }
+  100% { transform: translateY(-24vh); opacity: 0; }
+}
+@keyframes star-twinkle {
+  0%, 100% { filter: brightness(.55); }
+  50%      { filter: brightness(1.75); }
 }
 
 /* Vignette — pulls focus back toward the working area */
@@ -815,6 +849,7 @@ table.data-table { width: 100%; border-collapse: collapse; }
 [data-theme='light'] .bg-orb { opacity: .18; }
 [data-theme='light'] .bg-grid { opacity: .45; }
 [data-theme='light'] .bg-stars i { opacity: .35; }
+[data-theme='light'] .bg-comets i { opacity: 0; }
 [data-theme='light'] .bg-vignette {
   background: radial-gradient(120% 92% at 50% 32%, transparent 58%, rgba(214, 223, 236, 0.5) 100%);
 }
@@ -827,7 +862,8 @@ table.data-table { width: 100%; border-collapse: collapse; }
 [data-theme='high-contrast'] .toast { background: var(--bg-elev); backdrop-filter: none; -webkit-backdrop-filter: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .bg-orb, .bg-aurora .au, .bg-stars i { animation: none; }
+  .bg-orb, .bg-aurora .au, .bg-stars i, .bg-comets i { animation: none; }
+  .bg-grid::after { animation: none; display: none; }
   .progress > div::after { animation: none; display: none; }
   .empty-state svg { animation: none; }
 }
