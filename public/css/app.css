@@ -31,6 +31,8 @@
   --glass-strong: rgba(10, 17, 30, 0.78);
   --glass-topline: rgba(255, 255, 255, 0.05);
   --glass-blur: 16px;
+  /* Tail color for the gradient page title */
+  --title-fade: #8fb0e6;
 }
 
 [data-theme='high-contrast'] {
@@ -59,6 +61,7 @@
   --glass: rgba(255, 255, 255, 0.72);
   --glass-strong: rgba(255, 255, 255, 0.86);
   --glass-topline: rgba(255, 255, 255, 0.85);
+  --title-fade: #5a6474;
 }
 
 * { box-sizing: border-box; }
@@ -295,21 +298,29 @@ kbd {
 .field .hint { font-size: 11.5px; color: var(--text-faint); }
 
 /* ---------- wizard stepper ---------- */
-.stepper { display: flex; align-items: center; gap: 0; margin-bottom: 28px; }
-.step { display: flex; align-items: center; gap: 11px; }
+/* Each step is a pill (number + label). The active pill fills with the
+   accent tint and glows; completed pills turn green and are clickable. */
+.stepper { display: flex; align-items: center; gap: 8px; margin-bottom: 28px; min-width: 0; }
+.step {
+  display: flex; align-items: center; gap: 10px;
+  padding: 4px 14px 4px 5px; border-radius: 999px;
+  border: 1px solid transparent;
+  transition: background .2s, border-color .2s;
+}
 .step .num {
-  width: 36px; height: 36px; border-radius: 50%;
+  width: 28px; height: 28px; border-radius: 50%;
   display: grid; place-items: center;
   background: var(--surface); border: 1px solid var(--border);
-  color: var(--text-faint); font-size: 14px; font-weight: 700;
+  color: var(--text-faint); font-size: 12.5px; font-weight: 700;
   transition: all .22s var(--ease-kiosk);
 }
-.step .txt { font-size: 13.5px; color: var(--text-faint); font-weight: 600; }
-.step.active .num { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 0 0 5px var(--accent-soft); }
+.step .txt { font-size: 13px; color: var(--text-faint); font-weight: 600; white-space: nowrap; }
+.step.active { background: var(--accent-soft); border-color: rgba(59, 130, 246, .35); }
+.step.active .num { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 0 10px rgba(59, 130, 246, .45); }
 .step.active .txt { color: var(--text); }
 .step.done .num { background: var(--ok); border-color: var(--ok); color: #07130c; }
 .step.done .txt { color: var(--ok); }
-.step-line { width: 72px; height: 1px; background: var(--border); margin: 0 14px; }
+.step-line { flex: 1; min-width: 18px; height: 1px; background: var(--border); }
 
 /* ---------- selectable cards (sources/targets) ---------- */
 .pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
@@ -1047,9 +1058,13 @@ table.data-table { width: 100%; border-collapse: collapse; }
 
 /* ================= Wizard v2: headline / volume cards / summary panel ================= */
 /* Title + stepper + read-only badge share one row to save vertical space. */
-.wiz-headline { display: flex; align-items: center; gap: 22px; margin-bottom: 20px; flex-wrap: wrap; }
-.wiz-headline h1 { margin: 0; font-size: 21px; font-weight: 700; letter-spacing: .01em; white-space: nowrap; }
-.wiz-headline .stepper { margin-bottom: 0; flex: 1; min-width: 320px; }
+.wiz-headline { display: flex; align-items: center; gap: 20px; margin-bottom: 22px; flex-wrap: wrap; }
+.wiz-headline h1 {
+  margin: 0; font-size: 22px; font-weight: 800; letter-spacing: .01em; white-space: nowrap;
+  background: linear-gradient(90deg, var(--text) 40%, var(--title-fade));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.wiz-headline .stepper { margin-bottom: 0; flex: 1; min-width: 340px; }
 .ro-badge {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 11.5px; font-weight: 600; white-space: nowrap;
@@ -1069,7 +1084,8 @@ table.data-table { width: 100%; border-collapse: collapse; }
 .last-scan { font-size: 11px; color: var(--text-faint); white-space: nowrap; }
 .rescan-btn { padding: 5px 11px; font-size: 12px; gap: 6px; }
 .rescan-btn svg { width: 13px; height: 13px; }
-.vol-card { display: flex; flex-direction: column; gap: 8px; }
+.vol-card { display: flex; flex-direction: column; gap: 8px; min-height: 148px; }
+.vol-card .vol-tags { margin-top: auto; }
 .vol-ic { color: var(--accent); display: inline-flex; }
 .vol-card.is-sel { border-color: var(--accent); }
 .vol-card .vc-check { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); font-size: 11px; font-weight: 700; white-space: nowrap; }
@@ -1157,3 +1173,41 @@ table.data-table { width: 100%; border-collapse: collapse; }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .rp-meta { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+
+/* ================= Wizard polish (v1.5.6) ================= */
+/* Summary panel header: title + count pill */
+.wiz-sum-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.wiz-sum-head .section-title { margin: 0; }
+.wiz-count-pill {
+  display: inline-grid; place-items: center; min-width: 22px; height: 22px;
+  padding: 0 7px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent);
+  border: 1px solid rgba(59, 130, 246, .35);
+  font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+/* Summary rows: dotted separators, tabular numbers */
+.wiz-sumrows { gap: 0 !important; }
+.wiz-sumrows > div {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 6px 0; font-size: 13px;
+  border-bottom: 1px dashed var(--border-soft);
+  font-variant-numeric: tabular-nums;
+}
+.wiz-sumrows > div:last-child { border-bottom: 0; }
+/* Footer: stronger primary, clearer running summary */
+.wizard-actions .btn.primary { padding: 12px 30px; font-size: 14.5px; }
+.wiz-foot-sum { font-size: 13px; padding-top: 14px; }
+/* Card grid: staggered entrance under the page-level view-enter */
+.view-enter .pick-grid > * { animation: view-in .34s var(--ease-kiosk) both; animation-delay: .07s; }
+.view-enter .pick-grid > *:nth-child(2) { animation-delay: .11s; }
+.view-enter .pick-grid > *:nth-child(3) { animation-delay: .15s; }
+.view-enter .pick-grid > *:nth-child(4) { animation-delay: .19s; }
+.view-enter .pick-grid > *:nth-child(5) { animation-delay: .23s; }
+.view-enter .pick-grid > *:nth-child(6) { animation-delay: .27s; }
+.view-enter .pick-grid > *:nth-child(n+7) { animation-delay: .31s; }
+/* Selected volume card: confident green-tinted confirmation */
+.vol-card.is-sel { border-color: var(--accent); background: rgba(74, 158, 255, .08); }
+.vol-card.is-sel .vc-check { color: var(--ok); }
+@media (prefers-reduced-motion: reduce) {
+  .view-enter .pick-grid > * { animation: none; }
+}

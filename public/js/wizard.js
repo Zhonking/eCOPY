@@ -1,8 +1,8 @@
 // Three-step offload wizard: sources → targets/template → review & start.
-import { h, icon, clear, formatBytes, eta, toast, openModal, protocolLabel, matchPhysicalForVolume } from './lib.js?v=35';
-import { api } from './api.js?v=35';
-import { openPathBrowser } from './browser.js?v=35';
-import { t } from './i18n.js?v=35';
+import { h, icon, clear, formatBytes, eta, toast, openModal, protocolLabel, matchPhysicalForVolume } from './lib.js?v=36';
+import { api } from './api.js?v=36';
+import { openPathBrowser } from './browser.js?v=36';
+import { t } from './i18n.js?v=36';
 
 let state = null;
 let starting = false;
@@ -455,7 +455,10 @@ function summaryPanel(appState) {
   }
 
   const tot = grandTotals();
-  card.appendChild(h('div', { class: 'section-title', style: { margin: '0' } }, t('wiz.selectedSummary')));
+  card.appendChild(h('div', { class: 'wiz-sum-head' }, [
+    h('div', { class: 'section-title' }, t('wiz.selectedSummary')),
+    h('span', { class: 'wiz-count-pill', title: t('wiz.sumSources') }, String(state.sources.length))
+  ]));
 
   // Removable chips — quick overview + quick removal.
   const chips = h('div', { class: 'src-chips' });
