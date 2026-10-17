@@ -115,6 +115,9 @@ const DICTS = {
     'wiz.volume': '卷',
     'wiz.reset': '重置',
     'wiz.resetDone': '向导已重置',
+    'wiz.firstShot': '第一张',
+    'wiz.lastShot': '最后一张',
+    'wiz.noPreview': '无法生成预览',
     'wiz.typeOther': '其他',
 
     // browser drawer
@@ -358,6 +361,9 @@ const DICTS = {
     'wiz.volume': 'ボリューム',
     'wiz.reset': 'リセット',
     'wiz.resetDone': 'ウィザードをリセットしました',
+    'wiz.firstShot': '最初の1枚',
+    'wiz.lastShot': '最後の1枚',
+    'wiz.noPreview': 'プレビューを生成できません',
     'wiz.typeOther': 'その他',
 
     'br.selectFolder': 'フォルダを選択',
@@ -594,6 +600,9 @@ const DICTS = {
     'wiz.volume': 'Volume',
     'wiz.reset': 'Reset',
     'wiz.resetDone': 'Wizard reset',
+    'wiz.firstShot': 'First shot',
+    'wiz.lastShot': 'Last shot',
+    'wiz.noPreview': 'No preview available',
     'wiz.typeOther': 'Other',
 
     'br.selectFolder': 'Select folder',

@@ -1,7 +1,7 @@
 // Disks & volumes view with space bars and physical health.
-import { h, icon, clear, formatBytes, toast, protocolLabel, matchPhysicalForVolume } from './lib.js?v=34';
-import { api } from './api.js?v=34';
-import { t } from './i18n.js?v=34';
+import { h, icon, clear, formatBytes, toast, protocolLabel, matchPhysicalForVolume } from './lib.js?v=35';
+import { api } from './api.js?v=35';
+import { t } from './i18n.js?v=35';
 
 export function renderDisks(mount, appState) {
   clear(mount);

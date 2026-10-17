@@ -1,8 +1,8 @@
 // Three-step offload wizard: sources → targets/template → review & start.
-import { h, icon, clear, formatBytes, eta, toast, protocolLabel, matchPhysicalForVolume } from './lib.js?v=34';
-import { api } from './api.js?v=34';
-import { openPathBrowser } from './browser.js?v=34';
-import { t } from './i18n.js?v=34';
+import { h, icon, clear, formatBytes, eta, toast, openModal, protocolLabel, matchPhysicalForVolume } from './lib.js?v=35';
+import { api } from './api.js?v=35';
+import { openPathBrowser } from './browser.js?v=35';
+import { t } from './i18n.js?v=35';
 
 let state = null;
 let starting = false;
@@ -123,6 +123,9 @@ function toggleDate(src, date, appState) {
     if (sel.size > 1) sel.delete(date); // never allow an empty selection
   } else {
     sel.add(date);
+    // Picking a date previews the first & last photo of that day.
+    const rangeFiles = (src.files || []).filter((f) => f.shootDate === date);
+    showRangePreview(src.path, `${src.volume || ''} · ${date}`, rangeFiles);
   }
   renderWizard(document.getElementById('content'), appState);
 }
@@ -351,9 +354,71 @@ async function addSource(p, appState) {
     state._lastScan = state._lastScan || new Date();
     toast(t('wiz.sourceAdded'), `${scan.volume} · ${scan.fileCount} ${t('job.files')}`, 'ok', 3500);
     renderWizard(document.getElementById('content'), appState);
+    // Adding a folder previews the first & last photo of the whole card.
+    showRangePreview(scan.path, `${scan.cameraLabel} · ${scan.volume}`, scan.files || []);
   } catch (e) {
     toast(t('wiz.sourceFail'), e.message, 'bad');
   }
+}
+
+// ---------- boundary-photo preview popup ----------
+
+const IMG_RE = /\.(jpe?g|dng|nef|nrw|arw|cr2|cr3|raf|orf|rw2|pef|x3f|insp)$/i;
+const natCmp = (a, b) => a.localeCompare(b, undefined, { numeric: true });
+
+// Decide what the <img> should load for a boundary file: the file itself
+// when it is a JPG, a stem-matched JPG sibling (RAW+JPG shooting pairs),
+// or the RAW itself — the backend serves its embedded JPEG preview.
+function previewSourceFor(file, imgs) {
+  if (/\.jpe?g$/i.test(file.rel)) return file.rel;
+  const stem = file.rel.replace(/\.[^.]+$/, '');
+  const sibling = imgs.find((f) => f.rel === `${stem}.jpg` || f.rel === `${stem}.jpeg`);
+  return sibling ? sibling.rel : file.rel;
+}
+
+function showRangePreview(rootPath, title, files) {
+  const imgs = files.filter((f) => IMG_RE.test(f.rel)).sort((a, b) => natCmp(a.rel, b.rel));
+  if (!imgs.length) return;
+  const root = rootPath.replace(/[\\/]+$/, '');
+
+  const pane = (slotLabel, file) =>
+    h('div', { class: 'rp-pane' }, [
+      h('div', { class: 'rp-slot' }, slotLabel),
+      h('div', { class: 'rp-img' }, [
+        h('img', {
+          src: `/api/thumb?path=${encodeURIComponent(`${root}/${previewSourceFor(file, imgs)}`)}`,
+          alt: file.rel,
+          onError: (e) => {
+            const box = e.target.parentElement;
+            e.target.remove();
+            box.appendChild(h('span', { class: 'faint', style: { fontSize: '12px' } }, t('wiz.noPreview')));
+          }
+        })
+      ]),
+      h('div', { class: 'rp-name mono' }, file.rel.split('/').pop()),
+      h('div', { class: 'rp-meta' }, file.mtime ? file.mtime.slice(0, 16).replace('T', ' ') : '')
+    ]);
+
+  let close;
+  const closeBtn = h('button', {
+    class: 'icon-btn', title: t('wiz.remove'),
+    onClick: () => close && close()
+  }, [icon('x', 16)]);
+
+  const content = h('div', { class: 'range-pop' }, [
+    h('div', { class: 'rp-head' }, [
+      h('div', { style: { flex: '1', minWidth: '0' } }, [
+        h('div', { class: 'rp-title' }, title),
+        h('div', { class: 'rp-sub' }, `${imgs.length} ${t('job.files')}`)
+      ]),
+      closeBtn
+    ]),
+    h('div', { class: 'rp-panes' }, [
+      pane(t('wiz.firstShot'), imgs[0]),
+      pane(t('wiz.lastShot'), imgs[imgs.length - 1])
+    ])
+  ]);
+  close = openModal({ content, width: 620, top: '14vh' });
 }
 
 // Extension-size histogram across every selected source (date-filter aware).

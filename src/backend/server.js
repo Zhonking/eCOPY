@@ -13,6 +13,7 @@ import {
   statPath,
   ejectVolume
 } from './disks.js';
+import { readThumb, JPG_EXTS, RAW_EXTS } from './thumbs.js';
 import {
   getSettings,
   saveSettings,
@@ -200,6 +201,28 @@ async function handleApi(req, res, url) {
       return sendJSON(res, 200, await scanSource(body.path));
     } catch (e) {
       return sendJSON(res, 400, { error: e.message });
+    }
+  }
+
+  // Boundary-photo preview thumbnails: JPGs stream directly, RAWs yield
+  // their embedded JPEG preview (see thumbs.js).
+  if (p === '/api/thumb' && method === 'GET') {
+    const abs = path.resolve(q.get('path') || '');
+    const ext = path.extname(abs).toLowerCase();
+    if (!JPG_EXTS.has(ext) && !RAW_EXTS.has(ext)) {
+      return sendJSON(res, 415, { error: 'Not an image' });
+    }
+    try {
+      const out = await readThumb(abs);
+      if (!out) return sendJSON(res, 404, { error: 'No preview' });
+      res.writeHead(200, {
+        'Content-Type': out.mime,
+        'Content-Length': out.buf.length,
+        'Cache-Control': 'private, max-age=120'
+      });
+      return res.end(out.buf);
+    } catch {
+      return sendJSON(res, 404, { error: 'Not found' });
     }
   }
 
