@@ -1,5 +1,36 @@
 # Release Notes
 
+## v2.0.1 — 2026-10-24
+
+### Fixed
+
+- **修复悬浮窗 × 按钮无响应** — 标题栏右上角的 ×（退出应用）自 v1.4.0 起从未绑定过事件（脚本只绑定了隐藏按钮、底部「显示主窗口/退出」），点击毫无反应；现与底部「退出」共用同一确认退出流程（弹确认框 → 停止任务并退出）。实机验证：× → 确认 → IPC → 进程退出全链路生效
+- **× 按钮红色悬停反馈补全** — 样式表中 `.tbtn.close:hover` 的红色悬停一直是死规则（按钮未挂 `close` 类），已补挂，关闭意图有正确的视觉反馈
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 2.0.1.exe`（NSIS 安装版） | 78.4 MB | `028749BF9FA843E6EE4B67E014022422A0F3B6AB15ADDDDA52FD9313DA567E85` |
+| `eCOPY 2.0.1.exe`（便携版） | 78.2 MB | `3FEFDB44EF0AD21494804884A81557E6AD819F95C5F142CF087C7894BFBC54EC` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v2.0.1 — English
+
+### Fixed
+
+- **Floating window × button did nothing** — the titlebar × (quit) had never been wired to any event since v1.4.0 (only the hide button and the foot buttons were bound); it now shares the same confirm-and-quit flow as the foot 退出 button. Verified live: × → confirm → IPC → process exit
+- **Red hover affordance for × restored** — `.tbtn.close:hover` was a dead rule (the button lacked the `close` class); the class is attached now
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v2.0.0 — 2026-10-24
 
 ### Highlights

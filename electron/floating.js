@@ -46,13 +46,16 @@ async function tick() {
   }
 }
 
-$('btnRestore').addEventListener('click', () => { window.ecopy && window.ecopy.restoreMain(); });
-$('btnMin').addEventListener('click', () => { window.ecopy && window.ecopy.hideFloating(); });
-$('btnQuit').addEventListener('click', () => {
+// Titlebar × and the foot 退出 button share the same confirm-and-quit flow.
+const confirmQuit = () => {
   if (confirm('确定退出 eCOPY？运行中的拷卡任务将被停止。')) {
     window.ecopy && window.ecopy.quitNow();
   }
-});
+};
+$('btnRestore').addEventListener('click', () => { window.ecopy && window.ecopy.restoreMain(); });
+$('btnMin').addEventListener('click', () => { window.ecopy && window.ecopy.hideFloating(); });
+$('btnClose').addEventListener('click', confirmQuit);
+$('btnQuit').addEventListener('click', confirmQuit);
 
 tick();
 timer = setInterval(tick, 800);
