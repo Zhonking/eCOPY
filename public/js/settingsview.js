@@ -1,7 +1,7 @@
 // Settings view — saved inline, no modal dialogs.
-import { h, icon, clear, toast } from './lib.js?v=39';
-import { api } from './api.js?v=39';
-import { t, LANG_OPTIONS } from './i18n.js?v=39';
+import { h, icon, clear, toast } from './lib.js?v=40';
+import { api } from './api.js?v=40';
+import { t, LANG_OPTIONS } from './i18n.js?v=40';
 
 export function renderSettings(mount, appState) {
   clear(mount);
@@ -62,11 +62,23 @@ export function renderSettings(mount, appState) {
       ]))
   );
 
-  // Floating progress window (full width)
+  // Floating progress window (full width) — applies instantly, like the
+  // language select, so background-mode behaviour follows the switch
+  // without needing the Save button.
   card.appendChild(
     h('div', { class: 'full' }, [
       h('div', { style: { fontWeight: '600', marginBottom: '8px' } }, t('set.floating')),
-      checkBox(t('set.floatingEnable'), 'floatingWindow', s.floatingWindow !== false),
+      h('label', { class: 'check-row' }, [
+        h('input', {
+          type: 'checkbox', checked: s.floatingWindow !== false,
+          dataset: { key: 'floatingWindow' },
+          onChange: (e) => {
+            markDirty();
+            api.settings.save({ floatingWindow: e.target.checked }).catch(() => {});
+          }
+        }),
+        t('set.floatingEnable')
+      ]),
       h('div', { class: 'muted', style: { fontSize: '11.5px', marginTop: '6px' } }, t('set.floatingHint'))
     ])
   );
