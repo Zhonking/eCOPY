@@ -1,12 +1,12 @@
 // eCOPY app bootstrap: splash, onboarding, i18n, routing, SSE, palette, notifications.
-import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=41';
-import { api } from './api.js?v=41';
-import { renderWizard, resetWizard } from './wizard.js?v=41';
-import { renderJobs } from './joblist.js?v=41';
-import { renderJob, destroyWarp } from './jobview.js?v=41';
-import { renderDisks } from './disksview.js?v=41';
-import { renderSettings } from './settingsview.js?v=41';
-import { t, setLang, LANG_OPTIONS } from './i18n.js?v=41';
+import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=42';
+import { api } from './api.js?v=42';
+import { renderWizard, resetWizard } from './wizard.js?v=42';
+import { renderJobs } from './joblist.js?v=42';
+import { renderJob, destroyWarp } from './jobview.js?v=42';
+import { renderDisks } from './disksview.js?v=42';
+import { renderSettings } from './settingsview.js?v=42';
+import { t, setLang, LANG_OPTIONS } from './i18n.js?v=42';
 
 const appState = { settings: {}, volumes: [], physical: [], jobs: [] };
 window.__appState = appState;
@@ -171,7 +171,6 @@ function showOnboarding() {
       h('svg', { class: 'onboard-logo', width: '64', height: '64', viewBox: '0 0 32 32', html: "<rect width='32' height='32' rx='7' fill='#2fe07f'/><path d='M9 16l5 5 9-11' stroke='#0b0e13' stroke-width='3.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/>" }),
       h('div', { class: 'onboard-welcome' }, t('onb.welcome')),
       h('div', { class: 'onboard-brand' }, 'eCOPY'),
-      h('div', { class: 'onboard-co' }, 'XUEZHIZHONG · 薛智中'),
       h('div', { class: 'onboard-tagline' }, t('onb.tagline')),
       h('div', { class: 'onboard-feats' }, feats.map(([ic, tk, bk]) =>
         h('div', { class: 'onboard-feat' }, [

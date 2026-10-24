@@ -99,4 +99,4 @@ npm test           # scripts/selftest.js
 
 ## 许可证
 
-Copyright © XUEZHIZHONG 薛智中. 保留所有权利（All Rights Reserved）。未获授权不得复制、分发或修改本软件。
+Copyright © eCOPY. 保留所有权利（All Rights Reserved）。未获授权不得复制、分发或修改本软件。

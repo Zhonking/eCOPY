@@ -1,5 +1,36 @@
 # Release Notes
 
+## v2.0.2 — 2026-10-24
+
+### Changed
+
+- **移除应用内的个人署名字样** — 开屏页右下角「XUEZHIZHONG · 薛智中」与首运行引导页的署名行删除；安装包元数据（描述/作者）与中英 README 版权行改为中性的「eCOPY」。技术标识（AppUserModelId / 安装器 appId）保持不变，不影响任务栏识别与升级链
+- 开屏版本标识更新为 SYSTEM BOOT · V2（此前停留在 V1.5）；清理两条已无用的署名 CSS 规则
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 2.0.2.exe`（NSIS 安装版） | 78.4 MB | `A8EABF7BB49D16E447355188D510D752ADE60E51D93F47F524C38EAE73E72C61` |
+| `eCOPY 2.0.2.exe`（便携版） | 78.2 MB | `29800150FDEE71E469F382D161F4435C0A96D9ABC24E8D81BBA0BD9F4EC0905A` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v2.0.2 — English
+
+### Changed
+
+- **Personal name removed from the app** — the splash credit and first-run onboarding byline are gone; installer metadata (description/author) and both READMEs now say "eCOPY" instead. Technical identifiers (AppUserModelId / appId) are unchanged, so taskbar identity and upgrades are unaffected
+- Splash boot tag updated to SYSTEM BOOT · V2; two now-unused credit CSS rules removed
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v2.0.1 — 2026-10-24
 
 ### Fixed

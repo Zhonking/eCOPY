@@ -666,10 +666,6 @@ table.data-table { width: 100%; border-collapse: collapse; }
   display: block; height: 100%; width: 0;
   background: var(--accent);
 }
-.sp-credit {
-  position: absolute; right: 24px; bottom: 22px;
-  font-size: 9px; letter-spacing: 0.18em; color: var(--text-faint);
-}
 .splash.out { opacity: 0; pointer-events: none; }
 
 /* ================= First-run onboarding ================= */
@@ -685,7 +681,6 @@ table.data-table { width: 100%; border-collapse: collapse; }
 .onboard-logo { display: block; margin: 0 auto 14px; }
 .onboard-welcome { font-size: 13px; letter-spacing: 0.28em; color: var(--text-faint); }
 .onboard-brand { font-size: 38px; font-weight: 600; letter-spacing: 0.02em; color: var(--text); margin-top: 6px; }
-.onboard-co { margin-top: 8px; font-size: 13px; letter-spacing: 0.28em; text-indent: 0.28em; color: var(--ok-bright); font-weight: 600; }
 .onboard-tagline { margin-top: 12px; font-size: 13px; color: var(--text-dim); }
 .onboard-feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 26px 0 22px; }
 .onboard-feat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 12px; text-align: left; }

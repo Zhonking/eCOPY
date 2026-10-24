@@ -99,4 +99,4 @@ npm test           # scripts/selftest.js
 
 ## License
 
-Copyright © XUEZHIZHONG. All rights reserved. Reproduction, distribution or modification of this software without authorization is not permitted.
+Copyright © eCOPY. All rights reserved. Reproduction, distribution or modification of this software without authorization is not permitted.
