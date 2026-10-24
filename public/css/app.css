@@ -710,22 +710,25 @@ table.data-table { width: 100%; border-collapse: collapse; }
    atmosphere, not motion. High-contrast theme drops the whole scene. */
 .bgfx { position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none; }
 
-/* Aurora — three immense hue-shifted gradient bands drifting past each other */
-.bg-aurora { position: absolute; inset: -22%; filter: blur(72px); }
+/* Aurora — three immense hue-shifted gradient bands drifting past each other.
+   Deliberately NO filter: blur() here — the gradients themselves fade to
+   transparent (wide 88% falloff), and large-area blur filters can degrade
+   into solid black rectangles on some GPU drivers (the "black box" bug). */
+.bg-aurora { position: absolute; inset: -22%; }
 .bg-aurora .au { position: absolute; border-radius: 50%; }
 .bg-aurora .a1 {
   width: 66%; height: 44%; left: -10%; top: 2%;
-  background: radial-gradient(closest-side, rgba(37, 99, 235, 0.32), transparent 72%);
+  background: radial-gradient(closest-side, rgba(37, 99, 235, 0.32) 0%, rgba(37, 99, 235, 0.1) 46%, transparent 88%);
   animation: au-drift 18s ease-in-out infinite alternate;
 }
 .bg-aurora .a2 {
   width: 72%; height: 48%; right: -14%; top: 32%;
-  background: radial-gradient(closest-side, rgba(34, 211, 238, 0.22), transparent 72%);
+  background: radial-gradient(closest-side, rgba(34, 211, 238, 0.22) 0%, rgba(34, 211, 238, 0.07) 46%, transparent 88%);
   animation: au-drift 21s ease-in-out infinite alternate-reverse;
 }
 .bg-aurora .a3 {
   width: 58%; height: 42%; left: 20%; bottom: -8%;
-  background: radial-gradient(closest-side, rgba(139, 92, 246, 0.24), transparent 72%);
+  background: radial-gradient(closest-side, rgba(139, 92, 246, 0.24) 0%, rgba(139, 92, 246, 0.08) 46%, transparent 88%);
   animation: au-drift 24s ease-in-out infinite alternate;
   animation-delay: -8s;
 }
@@ -735,26 +738,28 @@ table.data-table { width: 100%; border-collapse: collapse; }
   100% { transform: translate3d(-9vw, 8vh, 0) rotate(-5deg) scale(0.94); opacity: .82; }
 }
 
-/* Soft orbs — the original three glow sources, kept as the middle layer */
+/* Soft orbs — the original three glow sources, kept as the middle layer.
+   Same story as the aurora: no large-area blur filter (GPU black-box
+   artifact); the gradients carry a wide three-stop falloff instead. */
 .bg-orb {
-  position: absolute; border-radius: 50%; filter: blur(90px);
+  position: absolute; border-radius: 50%;
   animation: bg-orbit 11s ease-in-out infinite alternate;
   opacity: .55;
 }
 .bg-orb.o1 {
   width: 520px; height: 520px; left: -120px; top: -120px;
-  background: radial-gradient(circle, rgba(59,130,246,.6), rgba(59,130,246,0) 70%);
+  background: radial-gradient(circle, rgba(59,130,246,.6) 0%, rgba(59,130,246,.18) 42%, rgba(59,130,246,0) 86%);
   animation-duration: 11s;
 }
 .bg-orb.o2 {
   width: 640px; height: 640px; right: -180px; bottom: -180px;
-  background: radial-gradient(circle, rgba(47,224,127,.42), rgba(47,224,127,0) 70%);
+  background: radial-gradient(circle, rgba(47,224,127,.42) 0%, rgba(47,224,127,.13) 42%, rgba(47,224,127,0) 86%);
   animation-duration: 14s;
   animation-direction: alternate-reverse;
 }
 .bg-orb.o3 {
   width: 460px; height: 460px; left: 40%; top: 40%;
-  background: radial-gradient(circle, rgba(167,139,250,.46), rgba(167,139,250,0) 70%);
+  background: radial-gradient(circle, rgba(167,139,250,.46) 0%, rgba(167,139,250,.14) 42%, rgba(167,139,250,0) 86%);
   animation-duration: 9s;
   animation-delay: -3s;
 }
@@ -845,12 +850,14 @@ table.data-table { width: 100%; border-collapse: collapse; }
   background: radial-gradient(120% 92% at 50% 32%, transparent 55%, rgba(4, 7, 12, 0.38) 100%);
 }
 
-/* Light theme: soften every layer so cards stay readable */
+/* Light theme: soften every layer so cards stay readable. Comets hide via
+   visibility — the comet keyframes animate opacity, and a running animation
+   would override a plain `opacity: 0` rule here. */
 [data-theme='light'] .bg-aurora { opacity: .55; }
 [data-theme='light'] .bg-orb { opacity: .18; }
 [data-theme='light'] .bg-grid { opacity: .45; }
 [data-theme='light'] .bg-stars i { opacity: .35; }
-[data-theme='light'] .bg-comets i { opacity: 0; }
+[data-theme='light'] .bg-comets i { visibility: hidden; }
 [data-theme='light'] .bg-vignette {
   background: radial-gradient(120% 92% at 50% 32%, transparent 58%, rgba(214, 223, 236, 0.5) 100%);
 }

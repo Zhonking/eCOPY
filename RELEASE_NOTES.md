@@ -1,5 +1,48 @@
 # Release Notes
 
+## v1.5.9 — 2026-10-23
+
+### Fixed
+
+- **修复背景异常黑框** — 部分显卡驱动上，大面积 `filter: blur()`（极光 72px / 光斑 90px）会在 GPU 合成时退化成实心黑色矩形。彻底移除这两处模糊滤镜，改用径向渐变自带的三段式衰减（0% → 46% → 88%）实现同样的柔光效果——黑框根源消除，背景还省掉了每帧全屏模糊的计算开销
+- **修复亮色主题流星未隐藏** — 亮色主题的流星隐藏规则用 `opacity: 0` 会被运行中的动画覆盖（动画优先级高于普通声明），导致亮色主题下流星仍然划过；改用 `visibility: hidden` 正确隐藏
+
+### Improvements
+
+- **区间预览防单点失败** — 首末照片弹窗中，若边界文件无法生成预览（损坏的 RAW、无内嵌缩略图），自动回退尝试区间内相邻照片，单个坏文件不再让预览窗格空白
+- **RAW 缩略图内存修复** — 提取的内嵌 JPEG 现在复制为独立缓冲区，不再让 50MB+ 的原始 RAW 文件被缩略图缓存长期钉在内存里；预览最小阈值从 4KB 调整为 300 字节（不再误杀小尺寸内嵌缩略图）
+- 前端缓存号 v39
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 1.5.9.exe`（NSIS 安装版） | 78.4 MB | `B8B1A0C213C89CF96B20353FFF9256AB7D851DA78EC112A021BFA2D781B667D0` |
+| `eCOPY 1.5.9.exe`（便携版） | 78.2 MB | `04BCC5912CECE0ED57BCDD29483074AD576B2D754F41AF220D5B43BF0BFBD2EC` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v1.5.9 — English
+
+### Fixed
+
+- **Background "black box" artifact** — on some GPU drivers, the large-area `filter: blur()` layers (aurora 72px / orbs 90px) degrade into solid black rectangles during compositing. Both blur filters are gone, replaced by three-stop radial-gradient falloffs (0% → 46% → 88%) that keep the same soft glow — the artifact's root cause is eliminated and the full-screen per-frame blur cost disappears with it
+- **Comets no longer leak into the light theme** — the old `opacity: 0` hide was overridden by the running comet animation; `visibility: hidden` hides them properly
+
+### Improvements
+
+- **Boundary preview never blanks** — when a boundary file can't produce a preview (corrupt RAW, missing embedded thumbnail), the popup falls back to neighbouring photos in the range
+- **RAW thumbnail memory fix** — extracted JPEGs are copied out instead of pinning the whole 50MB+ RAW buffer in the thumbnail cache; minimum preview size relaxed from 4KB to 300 bytes
+- Cache v39
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.5.8 — 2026-10-17
 
 ### Highlights

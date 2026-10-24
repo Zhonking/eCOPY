@@ -39,8 +39,13 @@ export function extractJpegFromRaw(buf) {
     if (!best || end - i > best.end - best.start) best = { start: i, end };
     i = buf.indexOf(SOI, end);
   }
-  return best ? buf.subarray(best.start, best.end) : null;
+  return best;
 }
+
+// Real JPEGs run to at least a few hundred bytes; marker artifacts found
+// inside compressed pixel data are tiny. 300 bytes separates them without
+// rejecting genuinely small embedded thumbnails.
+const MIN_PREVIEW_BYTES = 300;
 
 // Returns { buf, mime } for a preview image, or null when none exists.
 // Throws only when the file cannot be read/stat'ed (caller → 404).
@@ -60,8 +65,11 @@ export async function readThumb(absPath) {
   if (!RAW_EXTS.has(ext) || s.size > MAX_RAW_BYTES) return null;
 
   const buf = await readFile(absPath);
-  const jpg = extractJpegFromRaw(buf);
-  if (!jpg || jpg.length < 4096) return null; // marker artifacts, not previews
+  const best = extractJpegFromRaw(buf);
+  if (!best || best.end - best.start < MIN_PREVIEW_BYTES) return null;
+  // Copy out of the (potentially huge) RAW buffer: a subarray view would
+  // pin the whole 50MB+ file in memory for as long as the cache holds it.
+  const jpg = Buffer.from(buf.subarray(best.start, best.end));
   cachePut(key, jpg);
   return { buf: jpg, mime: 'image/jpeg' };
 }

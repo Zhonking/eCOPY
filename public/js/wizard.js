@@ -1,8 +1,8 @@
 // Three-step offload wizard: sources → targets/template → review & start.
-import { h, icon, clear, formatBytes, eta, toast, openModal, protocolLabel, matchPhysicalForVolume } from './lib.js?v=38';
-import { api } from './api.js?v=38';
-import { openPathBrowser } from './browser.js?v=38';
-import { t } from './i18n.js?v=38';
+import { h, icon, clear, formatBytes, eta, toast, openModal, protocolLabel, matchPhysicalForVolume } from './lib.js?v=39';
+import { api } from './api.js?v=39';
+import { openPathBrowser } from './browser.js?v=39';
+import { t } from './i18n.js?v=39';
 
 let state = null;
 let starting = false;
@@ -380,24 +380,36 @@ function showRangePreview(rootPath, title, files) {
   const imgs = files.filter((f) => IMG_RE.test(f.rel)).sort((a, b) => natCmp(a.rel, b.rel));
   if (!imgs.length) return;
   const root = rootPath.replace(/[\\/]+$/, '');
+  const urlOf = (rel) => `/api/thumb?path=${encodeURIComponent(`${root}/${rel}`)}`;
 
-  const pane = (slotLabel, file) =>
-    h('div', { class: 'rp-pane' }, [
+  // A pane tries its boundary file first, then falls back to neighbouring
+  // images in the range when a preview cannot be produced (corrupt RAW,
+  // tiny/absent embedded thumbnail…) so one bad file never blanks the pane.
+  const pane = (slotLabel, file, fallbacks) => {
+    const candidates = [...new Set(
+      [previewSourceFor(file, imgs), ...fallbacks.map((f) => previewSourceFor(f, imgs))]
+    )];
+    const img = h('img', {
+      src: urlOf(candidates[0]),
+      alt: file.rel,
+      onError: (e) => {
+        candidates.shift(); // drop the candidate that just failed
+        if (candidates.length) {
+          e.target.src = urlOf(candidates[0]);
+        } else {
+          const box = e.target.parentElement;
+          e.target.remove();
+          box.appendChild(h('span', { class: 'faint', style: { fontSize: '12px' } }, t('wiz.noPreview')));
+        }
+      }
+    });
+    return h('div', { class: 'rp-pane' }, [
       h('div', { class: 'rp-slot' }, slotLabel),
-      h('div', { class: 'rp-img' }, [
-        h('img', {
-          src: `/api/thumb?path=${encodeURIComponent(`${root}/${previewSourceFor(file, imgs)}`)}`,
-          alt: file.rel,
-          onError: (e) => {
-            const box = e.target.parentElement;
-            e.target.remove();
-            box.appendChild(h('span', { class: 'faint', style: { fontSize: '12px' } }, t('wiz.noPreview')));
-          }
-        })
-      ]),
+      h('div', { class: 'rp-img' }, [img]),
       h('div', { class: 'rp-name mono' }, file.rel.split('/').pop()),
       h('div', { class: 'rp-meta' }, file.mtime ? file.mtime.slice(0, 16).replace('T', ' ') : '')
     ]);
+  };
 
   let close;
   const closeBtn = h('button', {
@@ -414,8 +426,8 @@ function showRangePreview(rootPath, title, files) {
       closeBtn
     ]),
     h('div', { class: 'rp-panes' }, [
-      pane(t('wiz.firstShot'), imgs[0]),
-      pane(t('wiz.lastShot'), imgs[imgs.length - 1])
+      pane(t('wiz.firstShot'), imgs[0], imgs.slice(1, 4)),
+      pane(t('wiz.lastShot'), imgs[imgs.length - 1], imgs.slice(-4, -1).reverse())
     ])
   ]);
   close = openModal({ content, width: 620, top: '14vh' });
