@@ -1,5 +1,46 @@
 # Release Notes
 
+## v1.6.0 — 2026-10-24
+
+### Fixed
+
+- **修复悬浮窗所有按钮失效** — 悬浮窗页面的 CSP 为 `script-src 'self'`（禁止内联脚本），而窗口逻辑写在内联 `<script>` 里被整个拦截：按钮（显示主窗口 / 隐藏 / 退出）全部无响应、进度轮询从未运行（一直显示「连接中…」）。现已将脚本外置为 `floating.js`，并在 CSP 中显式放行 `connect-src http://localhost:5218`（此前 `default-src 'self'` 会拦截 file:// 页面访问本地后端）。实机验证：按钮、进度刷新、preload 桥全部正常
+- **修复悬浮窗开关「不生效」的观感问题** — 开关原先需点击「保存设置」才持久化；现在与语言选项一样**切换即生效**，后台运行/关窗时立即按新状态决定是否弹出悬浮窗
+
+### Improvements
+
+- 开关行为经实机专项验证：开 → 后台模式显示悬浮窗；关 → 仅托盘不弹出；手动隐藏后再次进入后台模式时按开关决定是否重新显示
+- 前端缓存号 v40
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 1.6.0.exe`（NSIS 安装版） | 78.4 MB | `6B44F716F14890E919A35BDFAE2A4A8F88EC5491C5ED22FE278361B92920075B` |
+| `eCOPY 1.6.0.exe`（便携版） | 78.2 MB | `080A700C38CDB879D35CF5D95E2087A5FD9A031667437BE080BB8F452591D107` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v1.6.0 — English
+
+### Fixed
+
+- **Floating window buttons all dead** — the window CSP (`script-src 'self'`) blocked its own inline `<script>`: every button (show main / hide / quit) was unresponsive and the progress poller never ran (stuck on "connecting…"). The logic now lives in an external `floating.js`, and the CSP explicitly allows `connect-src http://localhost:5218` (previously `default-src 'self'` blocked the file:// page from reaching the local backend). Verified live: buttons, progress refresh and the preload bridge all work
+- **Floating-window toggle now applies instantly** — it used to require the Save button; like the language select it now persists on change, so background mode follows the switch immediately
+
+### Improvements
+
+- Toggle behaviour verified live: ON shows the floating window in background mode, OFF keeps tray-only, and a manually hidden window re-appears per the switch
+- Cache v40
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.5.9 — 2026-10-23
 
 ### Fixed
