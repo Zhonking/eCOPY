@@ -1,18 +1,17 @@
 // Job detail: per-source Safe gate, per-target legs, reports, logs.
-import { h, icon, clear, formatBytes, rate, eta, toast } from './lib.js?v=40';
-import { api } from './api.js?v=40';
-import { t } from './i18n.js?v=40';
-import { createWarp } from './warp.js?v=40';
+import { h, icon, clear, formatBytes, rate, eta, toast } from './lib.js?v=41';
+import { api } from './api.js?v=41';
+import { t } from './i18n.js?v=41';
 
-// Persistent warp stage across SSE redraws: the stage element (and its canvas)
-// survive redraws so CSS entry/exit transitions and the canvas animation
-// never get interrupted. Only the overlay text is updated in place.
-let warp = null; // { inst, canvas, jobId, stage, phaseEl, pctEl, statsEl, exiting, exitTimer }
+// Persistent progress panel across SSE redraws: the card element survives
+// redraws; only the phase/percent/bar/stats are updated in place. (The
+// canvas-based animation was removed with the flat restyle — this is now
+// plain DOM with a width transition.)
+let warp = null; // { jobId, stage, phaseEl, pctEl, barEl, statsEl, exiting, exitTimers, shownAt }
 
 export function destroyWarp() {
   if (warp) {
     (warp.exitTimers || []).forEach(clearTimeout);
-    warp.inst.destroy();
     warp.stage.remove();
     warp = null;
   }
@@ -308,26 +307,20 @@ function aggregateJob(job) {
 
 function ensureWarp(job) {
   if (warp) return warp;
-  const canvas = h('canvas', { class: 'warp-canvas' });
-  const inst = createWarp(canvas);
   const phaseEl = h('div', { class: 'warp-phase' });
   const pctEl = h('div', { class: 'warp-pct' });
+  const barEl = h('div', { class: 'progress' }, [h('div', { style: { width: '0%' } })]);
   const statsEl = h('div', { class: 'warp-stats' });
-  const stage = h('div', { class: 'warp-stage warp-entering' }, [
-    canvas,
-    h('div', { class: 'warp-overlay' }, [
-      phaseEl,
-      h('div', { class: 'warp-data' }, [pctEl, statsEl])
-    ])
-  ]);
-  warp = { inst, canvas, jobId: job.id, stage, phaseEl, pctEl, statsEl, exiting: false, exitTimers: [], shownAt: performance.now() };
-  // Drop the entering class on the next frame so the CSS transition plays.
-  requestAnimationFrame(() => { if (warp) warp.stage.classList.remove('warp-entering'); });
+  const stage = h('div', { class: 'warp-stage' }, [phaseEl, pctEl, barEl, statsEl]);
+  warp = {
+    jobId: job.id, stage, phaseEl, pctEl, barEl, statsEl,
+    exiting: false, exitTimers: [], shownAt: performance.now()
+  };
   return warp;
 }
 
-// Insert the persistent warp stage after `header` and refresh its HUD.
-// Handles running (live) and finished (exit transition) states.
+// Insert the persistent progress panel after `header` and refresh it.
+// Handles running (live) and finished (hold at 100%, then remove) states.
 function mountWarp(header, job) {
   if (job.status === 'running') {
     const w = ensureWarp(job);
@@ -337,12 +330,13 @@ function mountWarp(header, job) {
       w.exitTimers = [];
       w.exiting = false;
       w.shownAt = performance.now();
-      w.stage.classList.remove('warp-exiting');
+      w.barEl.classList.remove('ok');
     }
     const agg = aggregateJob(job);
     w.phaseEl.replaceChildren(icon('bolt', 16), t(`warp.${agg.phase}`));
-    w.inst.update({ active: true, progress: agg.progress, speedBps: agg.speedAll });
-    w.pctEl.textContent = `${(w.inst.displayProgress() * 100).toFixed(1)}%`;
+    const pct = agg.progress * 100;
+    w.pctEl.textContent = `${pct.toFixed(1)}%`;
+    w.barEl.firstChild.style.width = `${Math.min(100, pct)}%`;
     const stats = [h('span', {}, rate(agg.speedAll)), h('span', {}, eta(agg.remain))];
     if (agg.phase === 'verifying') stats.push(h('span', {}, `${agg.verifiedFiles}/${agg.totalFiles}`));
     w.statsEl.replaceChildren(...stats);
@@ -350,37 +344,21 @@ function mountWarp(header, job) {
     return;
   }
 
-  // Finished state: keep the scene alive at 100% so the displayed progress
-  // lands and the arrival flash blooms (setting active:false immediately
-  // would kill the flash). Fast local copies can finish before the stage
-  // even finished expanding, so hold it on screen for MIN_STAGE_MS first.
+  // Finished state: land at 100%, hold briefly so fast copies still read,
+  // then remove the panel.
   if (warp) {
     const w = warp;
     header.after(w.stage);
     if (!w.exiting) {
       w.exiting = true;
+      w.pctEl.textContent = '100%';
+      w.barEl.firstChild.style.width = '100%';
+      w.barEl.classList.add('ok');
       const shownFor = performance.now() - (w.shownAt || performance.now());
       const hold = Math.max(0, MIN_STAGE_MS - shownFor);
-      w.inst.update({ active: true, progress: 1, speedBps: 0 });
-      // Keep the HUD percentage in sync while the internal progress lands.
-      // update() must keep being called here — the value only advances
-      // inside update(), so a read-only poll would freeze at the last
-      // running value and the arrival flash would never bloom.
-      const pctSync = setInterval(() => {
-        w.inst.update({ active: true, progress: 1, speedBps: 0 });
-        const dp = w.inst.displayProgress();
-        w.pctEl.textContent = `${(dp * 100).toFixed(1)}%`;
-        if (dp >= 0.9995) clearInterval(pctSync);
-      }, 80);
-      w.exitTimers.push(pctSync);
-      // Progress lands + flash blooms (~1.7s), then collapse and remove.
-      w.exitTimers.push(setTimeout(() => {
-        w.inst.update({ active: false, progress: 1, speedBps: 0 });
-        w.stage.classList.add('warp-exiting');
-      }, hold + 1800));
       w.exitTimers.push(setTimeout(() => {
         if (warp === w) destroyWarp();
-      }, hold + 2600));
+      }, hold + 900));
     }
   }
 }

@@ -1,12 +1,12 @@
 // eCOPY app bootstrap: splash, onboarding, i18n, routing, SSE, palette, notifications.
-import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=40';
-import { api } from './api.js?v=40';
-import { renderWizard, resetWizard } from './wizard.js?v=40';
-import { renderJobs } from './joblist.js?v=40';
-import { renderJob, destroyWarp } from './jobview.js?v=40';
-import { renderDisks } from './disksview.js?v=40';
-import { renderSettings } from './settingsview.js?v=40';
-import { t, setLang, LANG_OPTIONS } from './i18n.js?v=40';
+import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=41';
+import { api } from './api.js?v=41';
+import { renderWizard, resetWizard } from './wizard.js?v=41';
+import { renderJobs } from './joblist.js?v=41';
+import { renderJob, destroyWarp } from './jobview.js?v=41';
+import { renderDisks } from './disksview.js?v=41';
+import { renderSettings } from './settingsview.js?v=41';
+import { t, setLang, LANG_OPTIONS } from './i18n.js?v=41';
 
 const appState = { settings: {}, volumes: [], physical: [], jobs: [] };
 window.__appState = appState;
@@ -54,11 +54,11 @@ function startSplash() {
   const pctEl = document.getElementById('spPct');
   const fillEl = document.getElementById('spFill');
   const statusEl = document.getElementById('spStatus');
-  const RAMP_START = 620;  // wait for the footer to fade in before the rule moves
-  const RAMP_MS = 2200;    // smootherstep ramp duration
-  const MIN_MS = 2860;     // minimum time the splash stays on screen
-  const MAX_MS = 6500;     // safety: never trap the user if the API hangs
-  const HOLD_MS = 320;     // brief hold at 100% before the exit transition
+  const RAMP_START = 240;  // wait for the footer before the bar moves
+  const RAMP_MS = 1000;    // boot bar ramp duration
+  const MIN_MS = 1500;     // minimum time the splash stays on screen
+  const MAX_MS = 4000;     // safety: never trap the user if the API hangs
+  const HOLD_MS = 200;     // brief hold at 100% before the exit transition
   const SWAP_MS = 120;     // status line crossfade half-duration
   let phase = 'run';
   let holdStart = 0;
@@ -228,11 +228,6 @@ async function route() {
   else if (view === 'disks') renderDisks(content, appState);
   else if (view === 'settings') renderSettings(content, appState);
   else window.__go('wizard');
-
-  // Stagger the freshly rendered children in (see .view-enter in app.css).
-  content.classList.remove('view-enter');
-  void content.offsetWidth; // restart the animation even mid-flight
-  content.classList.add('view-enter');
 }
 
 window.addEventListener('hashchange', () => route());

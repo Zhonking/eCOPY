@@ -1,5 +1,62 @@
 # Release Notes
 
+## v2.0.0 — 2026-10-24
+
+### Highlights
+
+- **UI 全面重构：微软 Office 风格扁平化设计** — 整个设计系统推倒重来：Fluent 中性色板（暗色 #1b1a19 系 / 亮色 #faf9f8 系）、Office 品牌蓝 #0078d4 唯一强调色、纯色表面 + 1px 细边框 + 4px 小圆角、Segoe UI 字体、下划线式输入框——安静、克制、专业，学习 Office 的信息层级与留白
+- **删除全部花哨动效** — 五层动态背景（极光/光斑/星尘/流星/网格）整体移除；磨砂玻璃（backdrop-filter）20 处清零；进度条流光、页面切换错峰入场、空状态呼吸、卡片入场动画全部删除；仅保留 toast/弹窗等功能性微过渡（120ms）
+- **拷卡动画替换为扁平进度卡** — 原 canvas 光轨动画（每帧重绘 + rAF 循环）替换为普通 DOM 进度卡：相位 + 大百分比 + 4px 进度条 + 速度/剩余时间，信息相同、渲染开销趋近于零；warp.js 删除
+
+### Performance
+
+- CSS 从 1257 行精简到 873 行，动画引用 96 → 13（全部为功能性过渡），blur/毛玻璃 0 处
+- 背景层 DOM 节点（约 25 个持续动画元素）移除，GPU 合成压力显著下降；拷卡期间不再有 canvas 常驻绘制，内存占用与 CPU 占用双降
+- 开屏时间缩短约一半（最短停留 2860ms → 1500ms，实机从启动到进入主界面约 3.6 秒）
+- 悬浮窗同步扁平化：纯色表面、去模糊去辉光、进度条去流光
+
+### Fixed
+
+- 亮色/高对比主题随新设计系统重写，对比度遵循 Office 规范；三主题全部实测通过
+- 实机端到端验证：真实拷卡任务进度推进（2.4%→6.0%）、悬浮窗轮询/按钮、设置开关即时保存、开屏退场时序全部通过
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 2.0.0.exe`（NSIS 安装版） | 78.4 MB | `AC9EB6AC4496844C9B9CA5DA47D487CB1E239FBBB5E2400C741D3CDDEB7191FD` |
+| `eCOPY 2.0.0.exe`（便携版） | 78.2 MB | `764DC60F37529CC4159B5802B389AE88F5D4BB67905BD6FD4917020AD59952B7` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v2.0.0 — English
+
+### Highlights
+
+- **Full UI restyle: flat, Microsoft Office-inspired** — the design system was rebuilt from scratch: Fluent neutral palette, a single Office-blue accent (#0078d4), solid surfaces with 1px borders and 4px radii, Segoe UI, underline-style inputs — quiet and professional, borrowing Office's hierarchy and whitespace
+- **All decorative motion removed** — the five-layer animated background (aurora/orbs/stars/comets/grid) is gone; all 20 backdrop-filter glass effects are gone; progress shimmer, staggered view entrances, breathing empty states deleted. Only functional micro-transitions remain (toasts, modals, 120ms)
+- **Copy animation replaced by a flat progress card** — the canvas light-rail scene (per-frame repaint + rAF loop) becomes a plain DOM card: phase, large percentage, a 4px bar, speed/ETA — same information at near-zero rendering cost; warp.js deleted
+
+### Performance
+
+- CSS 1257 → 873 lines, animation references 96 → 13 (all functional), zero blur
+- ~25 continuously animated background DOM nodes removed — GPU compositing pressure drops sharply; no resident canvas during copies (lower CPU & memory)
+- Splash roughly halved (minimum 2860ms → 1500ms; ~3.6s cold start to UI, measured live)
+- Floating window flattened too: solid surface, no blur/glow, no shimmer
+
+### Fixed
+
+- Light & high-contrast themes rewritten on the new tokens with Office-grade contrast; all three themes verified
+- Live E2E: real copy job progress (2.4%→6.0%), floating window poller/buttons, instant settings toggle, splash exit timing — all passing
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v1.6.0 — 2026-10-24
 
 ### Fixed

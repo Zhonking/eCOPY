@@ -5,16 +5,17 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:5218" />
 <title>eCOPY · 拷卡进度</title>
 <style>
+  /* Flat, Office-inspired: solid surfaces, one accent, no blur/glow. */
   :root {
-    --bg: rgba(10, 14, 22, 0.92);
-    --bg-soft: rgba(20, 28, 42, 0.85);
-    --accent: #3b82f6;
-    --accent-soft: rgba(59, 130, 246, 0.18);
-    --fg: #e8eef7;
-    --muted: #8a93a6;
-    --ok: #22c55e;
-    --warn: #f59e0b;
-    --border: rgba(255,255,255,0.08);
+    --bg: #201f1e;
+    --bg-soft: #323130;
+    --accent: #0078d4;
+    --accent-soft: rgba(0, 120, 212, 0.16);
+    --fg: #f3f2f1;
+    --muted: #b3b0ad;
+    --ok: #6ccb5f;
+    --warn: #ffb900;
+    --border: #3b3a39;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -31,12 +32,10 @@
     height: 100%;
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    border-radius: 6px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
   }
   .titlebar {
     -webkit-app-region: drag;
@@ -57,7 +56,6 @@
   .brand .dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
   }
   .titlebar .actions {
     -webkit-app-region: no-drag;
@@ -105,19 +103,10 @@
   .bar > div {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, var(--accent), #60a5fa);
-    border-radius: 4px;
+    background: var(--accent);
+    border-radius: 0;
     transition: width 0.4s ease;
-    position: relative;
-    overflow: hidden;
   }
-  .bar > div::after {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
-    transform: translateX(-100%);
-    animation: fl-shimmer 1.7s ease-in-out infinite;
-  }
-  @keyframes fl-shimmer { 60%, 100% { transform: translateX(100%); } }
   .stats {
     display: flex;
     justify-content: space-between;

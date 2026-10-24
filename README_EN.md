@@ -35,11 +35,10 @@ eCOPY is professional offload software for film and video production sets: it co
 - SMART temperature monitoring (requires administrator privileges on Windows — one-click elevated restart from within the app)
 
 ### User Experience
-- Deep-navy "airport self-service kiosk" style UI with a system-boot splash animation
-- **LightRail copy animation**: a glowing shuttle glides along a rail in step with progress; rail ticks flow at a speed proportional to the real copy speed, and the destination ring pulses green on arrival
-- **Desktop floating progress window**: frameless, always-on-top and draggable, showing aggregate offload progress in real time (running job count, total percentage, combined speed, ETA) — at a glance even while running in the background; can be toggled in Settings (tray-only when off)
-- Ambient animated scene: aurora bands + engineering grid + star dust in a five-layer stage, top-right toast notifications, trilingual UI (简体中文 / 日本語 / English)
-- Frosted-glass surfaces: translucent blurred top bar / sidebar / cards / overlays, with staggered view-transition animations
+- **Flat, Microsoft Office-inspired UI**: Fluent neutral palette with a single Office-blue accent, solid surfaces with 1px borders and 4px radii, Segoe UI, underline-style inputs — quiet, professional, easy to read
+- A **flat progress card** during copies: phase, large percentage, a slim bar, speed and ETA — same information at near-zero rendering cost
+- **Desktop floating progress window**: always-on-top and draggable, showing aggregate offload progress in real time; instantly toggleable in Settings (tray-only when off)
+- No decorative motion — only functional micro-transitions; a quick minimal boot splash; top-right toast notifications, trilingual UI (简体中文 / 日本語 / English)
 
 ## Architecture
 
