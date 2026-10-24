@@ -1,5 +1,48 @@
 # Release Notes
 
+## v2.1.0 — 2026-10-24
+
+### Highlights
+
+- **全新深紫主题** — 依照参考图整体换装：深紫中性底（#14101E 系）配右上紫晕 / 左下青晕两团静态径向光；强调色改为**紫→青渐变**（#7C5CFC → #38BDF8），贯穿主按钮、导航活动条、步骤数字、开屏进度条、悬浮窗进度条；圆角放宽到 6–8px；亮色主题同步换为淡紫薰衣草系，高对比主题不变
+- **拷卡进度改为环形进度** — 参考图的核心动效语言：96px 渐变描边圆环随进度扫过，百分比居中显示，相位与速度/剩余时间在侧；任务完成时圆环转绿后收起（纯 SVG stroke-dashoffset 过渡，零 canvas 零 rAF）
+- **动效克制依旧** — 无背景动画、无循环装饰；仅保留 hover 微反馈（卡片边框提亮）、进度过渡（300ms）与 toast/弹窗微过渡，保持 v2.0.0 的性能水位
+
+### Performance
+
+- 主题全部由 CSS 令牌与静态渐变实现，无新增运行时开销；环形进度为单元素 SVG 属性过渡，实测真实拷卡任务中 offset 与百分比严格同步推进
+- 前端缓存号 v43
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 2.1.0.exe`（NSIS 安装版） | 78.4 MB | `F654E863C0E3BE022B4ED88641F97445CDEC4F5B74DC81DD3B4D5EC1F9674D92` |
+| `eCOPY 2.1.0.exe`（便携版） | 78.2 MB | `1892D54D21B4B1E4790201323B77491CC12494F8E15B472734E4F99336706E61` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v2.1.0 — English
+
+### Highlights
+
+- **New deep-violet theme** — modelled on the reference image: deep-violet neutrals (#14101E) with two static radial glows (violet top-right, cyan bottom-left); the accent becomes a **violet→cyan gradient** (#7C5CFC → #38BDF8) across primary buttons, the nav rail, stepper numbers, the boot bar and the floating window; radii relaxed to 6–8px; the light theme moves to a soft lavender palette
+- **Ring-style copy progress** — the reference's signature motion: a 96px gradient-stroked ring sweeps with progress, percentage centered, phase and speed/ETA beside it; the ring turns green on completion (pure SVG stroke-dashoffset transitions — zero canvas, zero rAF)
+- **Still quiet on motion** — no background loops or decorative animation; only hover micro-feedback, 300ms progress transitions and toast/modal micro-transitions, keeping v2.0.0's performance profile
+
+### Performance
+
+- The theme is pure CSS tokens and static gradients; the ring is a single-element SVG attribute transition. Verified against a real copy job: dashoffset tracks the percentage exactly
+- Cache v43
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v2.0.2 — 2026-10-24
 
 ### Changed

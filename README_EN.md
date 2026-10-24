@@ -35,8 +35,8 @@ eCOPY is professional offload software for film and video production sets: it co
 - SMART temperature monitoring (requires administrator privileges on Windows — one-click elevated restart from within the app)
 
 ### User Experience
-- **Flat, Microsoft Office-inspired UI**: Fluent neutral palette with a single Office-blue accent, solid surfaces with 1px borders and 4px radii, Segoe UI, underline-style inputs — quiet, professional, easy to read
-- A **flat progress card** during copies: phase, large percentage, a slim bar, speed and ETA — same information at near-zero rendering cost
+- **Deep-violet gradient UI**: violet-tinted neutrals with a violet→cyan gradient accent, static radial glows, 8px radii, Segoe UI — quiet and modern
+- A **ring-style progress** during copies: a gradient-stroked ring sweeps with the percentage centered — pure SVG transitions, zero canvas
 - **Desktop floating progress window**: always-on-top and draggable, showing aggregate offload progress in real time; instantly toggleable in Settings (tray-only when off)
 - No decorative motion — only functional micro-transitions; a quick minimal boot splash; top-right toast notifications, trilingual UI (简体中文 / 日本語 / English)
 

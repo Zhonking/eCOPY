@@ -1,7 +1,7 @@
 // Settings view — saved inline, no modal dialogs.
-import { h, icon, clear, toast } from './lib.js?v=42';
-import { api } from './api.js?v=42';
-import { t, LANG_OPTIONS } from './i18n.js?v=42';
+import { h, icon, clear, toast } from './lib.js?v=43';
+import { api } from './api.js?v=43';
+import { t, LANG_OPTIONS } from './i18n.js?v=43';
 
 export function renderSettings(mount, appState) {
   clear(mount);

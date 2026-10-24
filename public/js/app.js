@@ -1,12 +1,12 @@
 // eCOPY app bootstrap: splash, onboarding, i18n, routing, SSE, palette, notifications.
-import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=42';
-import { api } from './api.js?v=42';
-import { renderWizard, resetWizard } from './wizard.js?v=42';
-import { renderJobs } from './joblist.js?v=42';
-import { renderJob, destroyWarp } from './jobview.js?v=42';
-import { renderDisks } from './disksview.js?v=42';
-import { renderSettings } from './settingsview.js?v=42';
-import { t, setLang, LANG_OPTIONS } from './i18n.js?v=42';
+import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=43';
+import { api } from './api.js?v=43';
+import { renderWizard, resetWizard } from './wizard.js?v=43';
+import { renderJobs } from './joblist.js?v=43';
+import { renderJob, destroyWarp } from './jobview.js?v=43';
+import { renderDisks } from './disksview.js?v=43';
+import { renderSettings } from './settingsview.js?v=43';
+import { t, setLang, LANG_OPTIONS } from './i18n.js?v=43';
 
 const appState = { settings: {}, volumes: [], physical: [], jobs: [] };
 window.__appState = appState;

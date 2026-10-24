@@ -5,17 +5,18 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:5218" />
 <title>eCOPY · 拷卡进度</title>
 <style>
-  /* Flat, Office-inspired: solid surfaces, one accent, no blur/glow. */
+  /* Deep-violet flat theme matching the main app (v2.1). */
   :root {
-    --bg: #201f1e;
-    --bg-soft: #323130;
-    --accent: #0078d4;
-    --accent-soft: rgba(0, 120, 212, 0.16);
-    --fg: #f3f2f1;
-    --muted: #b3b0ad;
-    --ok: #6ccb5f;
-    --warn: #ffb900;
-    --border: #3b3a39;
+    --bg: #1a1428;
+    --bg-soft: #2a2342;
+    --accent: #7c5cfc;
+    --accent-2: #38bdf8;
+    --accent-soft: rgba(124, 92, 252, 0.18);
+    --fg: #f4f2fa;
+    --muted: #a7a2b8;
+    --ok: #34d399;
+    --warn: #fbbf24;
+    --border: #3a3155;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -103,7 +104,7 @@
   .bar > div {
     height: 100%;
     width: 0%;
-    background: var(--accent);
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
     border-radius: 0;
     transition: width 0.4s ease;
   }

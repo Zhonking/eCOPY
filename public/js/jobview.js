@@ -1,7 +1,7 @@
 // Job detail: per-source Safe gate, per-target legs, reports, logs.
-import { h, icon, clear, formatBytes, rate, eta, toast } from './lib.js?v=42';
-import { api } from './api.js?v=42';
-import { t } from './i18n.js?v=42';
+import { h, icon, clear, formatBytes, rate, eta, toast } from './lib.js?v=43';
+import { api } from './api.js?v=43';
+import { t } from './i18n.js?v=43';
 
 // Persistent progress panel across SSE redraws: the card element survives
 // redraws; only the phase/percent/bar/stats are updated in place. (The
@@ -305,18 +305,49 @@ function aggregateJob(job) {
   return { progress, speedAll, phase, remain, verifiedFiles, totalFiles };
 }
 
+// Ring geometry for the circular copy progress (96px SVG, r=40).
+const RING_R = 40;
+const RING_C = 2 * Math.PI * RING_R;
+
 function ensureWarp(job) {
   if (warp) return warp;
   const phaseEl = h('div', { class: 'warp-phase' });
-  const pctEl = h('div', { class: 'warp-pct' });
-  const barEl = h('div', { class: 'progress' }, [h('div', { style: { width: '0%' } })]);
+  // SVG needs its own namespace — built via innerHTML, then the ring circle
+  // is looked up for per-tick dashoffset updates.
+  const ringEl = h('div', {
+    class: 'warp-ring',
+    html: `<svg viewBox="0 0 96 96">
+      <defs>
+        <linearGradient id="ecopyring" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#7c5cfc"/><stop offset="1" stop-color="#38bdf8"/>
+        </linearGradient>
+      </defs>
+      <circle class="ring-bg" cx="48" cy="48" r="${RING_R}"/>
+      <circle class="ring-fg" cx="48" cy="48" r="${RING_R}"/>
+    </svg>`
+  });
+  const ringFg = ringEl.querySelector('.ring-fg');
+  ringFg.style.strokeDasharray = RING_C;
+  ringFg.style.strokeDashoffset = RING_C;
+  const pctEl = h('div', { class: 'warp-pct' }, '0.0%');
+  ringEl.appendChild(pctEl);
   const statsEl = h('div', { class: 'warp-stats' });
-  const stage = h('div', { class: 'warp-stage' }, [phaseEl, pctEl, barEl, statsEl]);
+  const stage = h('div', { class: 'warp-stage' }, [
+    ringEl,
+    h('div', { class: 'warp-side' }, [phaseEl, statsEl])
+  ]);
   warp = {
-    jobId: job.id, stage, phaseEl, pctEl, barEl, statsEl,
+    jobId: job.id, stage, phaseEl, pctEl, ringEl, ringFg, statsEl,
     exiting: false, exitTimers: [], shownAt: performance.now()
   };
   return warp;
+}
+
+function setRingProgress(w, pct) {
+  w.pctEl.textContent = `${pct.toFixed(1)}%`;
+  const clamped = Math.max(0, Math.min(100, pct));
+  w.ringFg.style.strokeDashoffset = RING_C * (1 - clamped / 100);
+  if (clamped >= 100) w.ringEl.classList.add('done');
 }
 
 // Insert the persistent progress panel after `header` and refresh it.
@@ -330,13 +361,11 @@ function mountWarp(header, job) {
       w.exitTimers = [];
       w.exiting = false;
       w.shownAt = performance.now();
-      w.barEl.classList.remove('ok');
+      w.ringEl.classList.remove('done');
     }
     const agg = aggregateJob(job);
     w.phaseEl.replaceChildren(icon('bolt', 16), t(`warp.${agg.phase}`));
-    const pct = agg.progress * 100;
-    w.pctEl.textContent = `${pct.toFixed(1)}%`;
-    w.barEl.firstChild.style.width = `${Math.min(100, pct)}%`;
+    setRingProgress(w, agg.progress * 100);
     const stats = [h('span', {}, rate(agg.speedAll)), h('span', {}, eta(agg.remain))];
     if (agg.phase === 'verifying') stats.push(h('span', {}, `${agg.verifiedFiles}/${agg.totalFiles}`));
     w.statsEl.replaceChildren(...stats);
@@ -351,9 +380,7 @@ function mountWarp(header, job) {
     header.after(w.stage);
     if (!w.exiting) {
       w.exiting = true;
-      w.pctEl.textContent = '100%';
-      w.barEl.firstChild.style.width = '100%';
-      w.barEl.classList.add('ok');
+      setRingProgress(w, 100);
       const shownFor = performance.now() - (w.shownAt || performance.now());
       const hold = Math.max(0, MIN_STAGE_MS - shownFor);
       w.exitTimers.push(setTimeout(() => {
