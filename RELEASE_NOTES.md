@@ -1,5 +1,52 @@
 # Release Notes
 
+## v2.2.0 — 2026-10-31
+
+### Highlights
+
+- **全新雾霭蓝浅色主题** — 依照 Notion / Linear 的清新淡雅方向整体换装：页面极浅暖灰 #F7F8FA、卡片纯白 #FFFFFF，全局唯一主色**雾霭蓝 #5B8A9A**（主按钮实底 / 选中态 / 聚焦描边），其余一律中性灰；文字三级（标题 #1F2937 / 正文 #374151 / 说明 #9CA3AF），无纯黑
+- **去装饰化** — 移除全部渐变、发光、毛玻璃与深色底（深紫主题、紫青渐变、径向光全部退场）；层次只靠 1px #F0F1F3 分割线与留白：卡片内边距 24px、整体留白放宽约 20%、圆角统一 8px
+- **Logo 主色化** — 顶栏 / 开屏 / 引导页 / 网页 favicon / 应用图标（icon.ico）统一为雾霭蓝方块 + 白色对勾，鲜绿色块退场
+
+### Changed
+
+- 侧边栏选中态：主色 8% 浅底 + 主色文字，**去掉竖条指示器**；输入框白底 1px #E5E7EB 描边，聚焦变主色 + 3px 主色 15% 光晕；主按钮主色实底白字、hover 加深 8%、无阴影，次级按钮白底灰描边；通知点改琥珀色 #F59E0B 弱化；「已连接」改灰字 + 小灰点；复选框选中态主色
+- 环形拷卡进度改为主色实线描边（去渐变），完成转青瓷绿 #7BA697；悬浮窗同步浅色化（纯白面板、主色实心进度条）
+- 「暗色」主题选项按新规范映射为同一浅色面板（深色底已全局移除）；高对比主题反转为白底黑字；默认主题改为 light
+- 缓存号 v44
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 2.2.0.exe`（NSIS 安装版） | 78.4 MB | `C48BD933E1B40A2E04C8B37E93C965FD2573A8954C03DAB2919AF30898AC548C` |
+| `eCOPY 2.2.0.exe`（便携版） | 78.2 MB | `5A41D8EBD046A278D847A27E2C07D87CD408DFA95E518A338C38F3A6091FAEA0` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v2.2.0 — English
+
+### Highlights
+
+- **New mist-blue light theme** — a Notion/Linear-quiet restyle: warm-gray canvas (#F7F8FA), pure-white cards, a single mist-blue accent (#5B8A9A) for primary actions / selection / focus, everything else neutral gray; three-level type (#1F2937 / #374151 / #9CA3AF), never pure black
+- **De-decorated** — gradients, glow, glass and every dark surface are gone; hierarchy comes from 1px #F0F1F3 hairlines and whitespace (24px card padding, ~20% more breathing room, uniform 8px radii)
+- **Logo recolored** — topbar, splash, onboarding, favicon and the packaged icon.ico now carry the mist-blue mark with a white check
+
+### Changed
+
+- Sidebar selection = accent 8% fill + accent text (no rail); inputs white with 1px #E5E7EB, accent border + 3px 15% halo on focus; flat accent primary (hover −8% lightness), white secondary buttons; amber #F59E0B notification dot; gray "connected" status; accent checkboxes
+- Ring copy progress uses a solid accent stroke (gradient removed), turning celadon-green on completion; floating window lightened
+- The "dark" option maps to the light palette (dark surfaces removed globally); high-contrast flipped to white; default theme now light
+- Cache v44
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v2.1.0 — 2026-10-24
 
 ### Highlights

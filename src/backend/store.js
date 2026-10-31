@@ -19,7 +19,7 @@ export const DEFAULT_SETTINGS = {
   autoStart: false, // always require confirmation
   floatingWindow: true, // show the desktop floating progress window in background mode
   conflictPolicy: 'fail', // fail | keep-both
-  theme: 'dark',
+  theme: 'light',
   language: 'zh',
   onboarded: false,
   notifications: {

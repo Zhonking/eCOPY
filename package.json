@@ -1,6 +1,6 @@
 {
   "name": "ecopy",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "eCOPY — professional camera-card offload, with multi-target verification and Safe-to-Format",
   "type": "module",
   "main": "electron/main.cjs",

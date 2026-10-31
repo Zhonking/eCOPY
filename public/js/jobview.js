@@ -1,7 +1,7 @@
 // Job detail: per-source Safe gate, per-target legs, reports, logs.
-import { h, icon, clear, formatBytes, rate, eta, toast } from './lib.js?v=43';
-import { api } from './api.js?v=43';
-import { t } from './i18n.js?v=43';
+import { h, icon, clear, formatBytes, rate, eta, toast } from './lib.js?v=44';
+import { api } from './api.js?v=44';
+import { t } from './i18n.js?v=44';
 
 // Persistent progress panel across SSE redraws: the card element survives
 // redraws; only the phase/percent/bar/stats are updated in place. (The
@@ -313,15 +313,11 @@ function ensureWarp(job) {
   if (warp) return warp;
   const phaseEl = h('div', { class: 'warp-phase' });
   // SVG needs its own namespace — built via innerHTML, then the ring circle
-  // is looked up for per-tick dashoffset updates.
+  // is looked up for per-tick dashoffset updates. Stroke colour comes from
+  // CSS (.ring-fg carries the single accent).
   const ringEl = h('div', {
     class: 'warp-ring',
     html: `<svg viewBox="0 0 96 96">
-      <defs>
-        <linearGradient id="ecopyring" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#7c5cfc"/><stop offset="1" stop-color="#38bdf8"/>
-        </linearGradient>
-      </defs>
       <circle class="ring-bg" cx="48" cy="48" r="${RING_R}"/>
       <circle class="ring-fg" cx="48" cy="48" r="${RING_R}"/>
     </svg>`

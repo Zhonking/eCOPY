@@ -5,18 +5,19 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:5218" />
 <title>eCOPY · 拷卡进度</title>
 <style>
-  /* Deep-violet flat theme matching the main app (v2.1). */
+  /* Light, airy theme matching the main app (v2.2). */
   :root {
-    --bg: #1a1428;
-    --bg-soft: #2a2342;
-    --accent: #7c5cfc;
-    --accent-2: #38bdf8;
-    --accent-soft: rgba(124, 92, 252, 0.18);
-    --fg: #f4f2fa;
-    --muted: #a7a2b8;
-    --ok: #34d399;
-    --warn: #fbbf24;
-    --border: #3a3155;
+    --bg: #ffffff;
+    --bg-soft: #f3f4f6;
+    --accent: #5b8a9a;
+    --accent-hover: #547f8e;
+    --accent-soft: rgba(91, 138, 154, 0.10);
+    --fg: #374151;
+    --heading: #1f2937;
+    --muted: #6b7280;
+    --ok: #5f8b7c;
+    --warn: #d97706;
+    --border: #e5e7eb;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -36,7 +37,7 @@
     border-radius: 6px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    box-shadow: 0 1px 2px rgba(16,24,40,0.06), 0 6px 20px rgba(16,24,40,0.12);
   }
   .titlebar {
     -webkit-app-region: drag;
@@ -76,8 +77,8 @@
     justify-content: center;
     transition: background 0.15s, color 0.15s;
   }
-  .tbtn:hover { background: rgba(255,255,255,0.1); color: var(--fg); }
-  .tbtn.close:hover { background: #ef4444; color: #fff; }
+  .tbtn:hover { background: var(--bg-soft); color: var(--heading); }
+  .tbtn.close:hover { background: rgba(220, 90, 76, 0.12); color: #dc5a4c; }
 
   .body { padding: 4px 14px 10px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
   .headline {
@@ -104,7 +105,7 @@
   .bar > div {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    background: var(--accent);
     border-radius: 0;
     transition: width 0.4s ease;
   }

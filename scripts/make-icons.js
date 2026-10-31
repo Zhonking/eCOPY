@@ -13,9 +13,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RES = path.join(ROOT, 'resources');
 
 // Brand palette
-const GREEN_TOP = [61, 255, 146];
-const GREEN_BOT = [34, 201, 109];
-const INK = [11, 14, 19];
+const GREEN_TOP = [91, 138, 154];
+const GREEN_BOT = [91, 138, 154];
+const INK = [255, 255, 255];
 
 // Geometry in a 32×32 design space; SHAPE_S leaves a safe margin around the mark.
 const SHAPE_S = 0.84;
