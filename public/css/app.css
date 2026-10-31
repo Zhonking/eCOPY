@@ -692,39 +692,65 @@ table.data-table { width: 100%; border-collapse: collapse; }
 .splash.out { opacity: 0; pointer-events: none; }
 
 /* ================= First-run onboarding ================= */
+/* MUJI/Apple-quiet: one celadon accent (#6FA093), frameless feature row,
+   generous whitespace, no cards/shadows/gradients (the 3% accent radial
+   behind the title is the one sanctioned wash). */
 .onboard {
   position: fixed; inset: 0; z-index: 9998;
   display: flex; align-items: center; justify-content: center;
-  background: var(--bg);
+  background: #f7f9f8;
   opacity: 0; transition: opacity .3s ease;
+}
+/* Soft accent halo behind the headline (3% wash) */
+.onboard::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(460px 320px at 50% 32%, rgba(111, 160, 147, 0.03), transparent 70%);
 }
 .onboard.in { opacity: 1; }
 .onboard.out { opacity: 0; pointer-events: none; }
-.onboard-card { width: min(680px, 92vw); text-align: center; }
-.onboard-logo { display: block; margin: 0 auto 14px; }
-.onboard-welcome { font-size: 13px; letter-spacing: 0.28em; color: var(--text-faint); }
-.onboard-brand { font-size: 38px; font-weight: 600; letter-spacing: 0.02em; color: var(--heading); margin-top: 6px; }
-.onboard-tagline { margin-top: 12px; font-size: 13px; color: var(--text-dim); }
-.onboard-feats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 28px 0 24px; }
-.onboard-feat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 14px; text-align: left; }
-.onboard-feat svg { color: var(--text-dim); margin-bottom: 8px; }
-.onboard-feat .of-t { font-size: 13.5px; font-weight: 600; color: var(--heading); margin-bottom: 5px; }
-.onboard-feat .of-b { font-size: 12px; line-height: 1.6; color: var(--text-dim); }
-.onboard-lang { display: flex; gap: 8px; justify-content: center; align-items: center; margin-bottom: 22px; }
-.onboard-lang .ol-label { font-size: 12px; color: var(--text-faint); margin-right: 4px; }
-.onboard-lang button {
-  padding: 6px 14px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px;
-  background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); transition: border-color .12s, color .12s;
+.onboard-card { width: min(760px, 92vw); text-align: center; position: relative; }
+.onboard-logo { display: block; margin: 0 auto 24px; }
+.onboard-welcome { font-size: 12px; letter-spacing: 0.32em; color: #93a29d; }
+/* Thin, wide-tracked wordmark — the quiet hero */
+.onboard-brand {
+  font-size: 48px; font-weight: 300; letter-spacing: 0.14em;
+  color: #2e3a37; margin-top: 14px;
 }
-.onboard-lang button:hover { border-color: var(--accent); color: var(--text); }
-.onboard-lang button.sel { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.onboard-tagline { margin-top: 16px; font-size: 13px; color: #5c6b66; }
+/* Frameless three-column feature row with hairline separators */
+.onboard-feats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  margin: 52px 0 0;
+}
+.onboard-feat { padding: 4px 28px; text-align: left; }
+.onboard-feat:first-child { padding-left: 0; }
+.onboard-feat + .onboard-feat { border-left: 1px solid #e4eae7; }
+.onboard-feat:last-child { padding-right: 0; }
+.onboard-feat svg { color: #6fa093; margin-bottom: 10px; }
+.onboard-feat .of-t { font-size: 13.5px; font-weight: 500; color: #2e3a37; margin-bottom: 6px; }
+.onboard-feat .of-b { font-size: 12.5px; line-height: 1.75; color: #93a29d; }
+/* Bottom row: weakened segmented language control + the single CTA */
+.onboard-foot {
+  display: flex; align-items: center; justify-content: center; gap: 24px;
+  margin-top: 56px;
+}
+.onboard-lang { display: flex; gap: 4px; align-items: center; margin: 0; }
+.onboard-lang .ol-label { font-size: 12px; color: #93a29d; margin-right: 8px; }
+.onboard-lang button {
+  padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px;
+  background: transparent; border: 1px solid transparent; color: #93a29d;
+  transition: color .12s, background .12s, border-color .12s;
+}
+.onboard-lang button:hover { color: #5c6b66; }
+.onboard-lang button.sel { background: #ffffff; border-color: #6fa093; color: #6fa093; font-weight: 600; }
 .onboard-start {
-  padding: 10px 42px; border-radius: var(--radius-sm); border: 0; cursor: pointer;
-  font-size: 14px; font-weight: 600;
-  background: var(--accent); color: #ffffff;
+  height: 44px; padding: 0 44px; border-radius: 10px; border: 0; cursor: pointer;
+  font-size: 14.5px; font-weight: 600; letter-spacing: 0.02em;
+  background: #6fa093; color: #ffffff;
+  box-shadow: none;
   transition: background .12s;
 }
-.onboard-start:hover { background: var(--accent-hover); }
+.onboard-start:hover { background: #669387; }
 
 /* ================= Copy progress panel (ring) ================= */
 /* A calm ring in the single accent colour; percentage centered. */

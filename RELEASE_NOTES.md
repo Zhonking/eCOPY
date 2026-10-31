@@ -1,5 +1,40 @@
 # Release Notes
 
+## v2.2.1 — 2026-10-31
+
+### Changed
+
+- **欢迎页重设计（无印良品 / Apple 式克制）** — 功能与文案完全不变，仅视觉重构：全页统一微青暖白 #F7F9F8（标题后方叠 3% 主色径向光晕），唯一主色改**青瓷绿 #6FA093**；去掉三张描边卡片模板、全部阴影与渐变
+- **品牌区**：全新几何线条 Logo（青瓷绿圆角方框 + 对勾，纯描边无填充），置于字标上方；标题改 300 细体、48px 大字号、0.14em 宽字距，墨绿灰 #2E3A37（非纯黑），正文 #5C6B66、次要 #93A29D
+- **三项特性**：去卡片框，改一行三列极简排版（小图标 + 标题 + 灰色短说明），列间 1px #E4EAE7 细竖线分隔
+- **底部一行**：语言切换弱化为分段控件（选中白底 + 主色描边），与「开始使用」按钮（主色实底、白字、44px 高、10px 圆角、无阴影、hover 加深 8%）同排
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 2.2.1.exe`（NSIS 安装版） | 78.4 MB | `A19F599711E72369B8ADABFE88CF4021A7600022CBD9D1FEEBE0B10C78129554` |
+| `eCOPY 2.2.1.exe`（便携版） | 78.2 MB | `811D2B8D72619B09948D11411F81723AE285997F54EABE7230E31D79D022BB39` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v2.2.1 — English
+
+### Changed
+
+- **Welcome page redesigned (MUJI / Apple restraint)** — same features and copy, visuals only: unified warm-white #F7F9F8 canvas with a 3% accent radial wash behind the title; single celadon accent #6FA093; the three bordered cards, shadows and gradients are gone
+- **Brand block**: new geometric line logo (celadon rounded square + check, stroke only) above a thin 300-weight, 48px, wide-tracked wordmark in ink green-gray #2E3A37; body #5C6B66, secondary #93A29D
+- **Features**: frameless three-column row (icon + title + short gray note) separated by 1px #E4EAE7 hairlines
+- **Bottom row**: language weakened into a segmented control (white + accent border when selected) beside the single CTA (solid accent, white text, 44px tall, 10px radius, no shadow, −8% hover)
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v2.2.0 — 2026-10-31
 
 ### Highlights

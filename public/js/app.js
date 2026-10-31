@@ -1,12 +1,12 @@
 // eCOPY app bootstrap: splash, onboarding, i18n, routing, SSE, palette, notifications.
-import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=44';
-import { api } from './api.js?v=44';
-import { renderWizard, resetWizard } from './wizard.js?v=44';
-import { renderJobs } from './joblist.js?v=44';
-import { renderJob, destroyWarp } from './jobview.js?v=44';
-import { renderDisks } from './disksview.js?v=44';
-import { renderSettings } from './settingsview.js?v=44';
-import { t, setLang, LANG_OPTIONS } from './i18n.js?v=44';
+import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=45';
+import { api } from './api.js?v=45';
+import { renderWizard, resetWizard } from './wizard.js?v=45';
+import { renderJobs } from './joblist.js?v=45';
+import { renderJob, destroyWarp } from './jobview.js?v=45';
+import { renderDisks } from './disksview.js?v=45';
+import { renderSettings } from './settingsview.js?v=45';
+import { t, setLang, LANG_OPTIONS } from './i18n.js?v=45';
 
 const appState = { settings: {}, volumes: [], physical: [], jobs: [] };
 window.__appState = appState;
@@ -168,7 +168,8 @@ function showOnboarding() {
 
   function buildCard() {
     return h('div', { class: 'onboard-card' }, [
-      h('svg', { class: 'onboard-logo', width: '64', height: '64', viewBox: '0 0 32 32', html: "<rect width='32' height='32' rx='7' fill='#5b8a9a'/><path d='M9 16l5 5 9-11' stroke='#ffffff' stroke-width='3.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/>" }),
+      // Geometric line-style mark: rounded square + check, accent stroke only
+      h('svg', { class: 'onboard-logo', width: '72', height: '72', viewBox: '0 0 32 32', html: "<rect x='2.5' y='2.5' width='27' height='27' rx='8' fill='none' stroke='#6FA093' stroke-width='2.2'/><path d='M10 16.5l4.3 4.3L22.5 11' stroke='#6FA093' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/>" }),
       h('div', { class: 'onboard-welcome' }, t('onb.welcome')),
       h('div', { class: 'onboard-brand' }, 'eCOPY'),
       h('div', { class: 'onboard-tagline' }, t('onb.tagline')),
@@ -179,17 +180,19 @@ function showOnboarding() {
           h('div', { class: 'of-b' }, t(bk))
         ])
       )),
-      langRow,
-      h('button', {
-        class: 'onboard-start',
-        onClick: async () => {
-          await api.settings.save({ onboarded: true, language: picked }).catch(() => {});
-          appState.settings.onboarded = true;
-          overlay.classList.add('out');
-          setTimeout(() => overlay.remove(), 550);
-          route();
-        }
-      }, t('onb.start'))
+      h('div', { class: 'onboard-foot' }, [
+        langRow,
+        h('button', {
+          class: 'onboard-start',
+          onClick: async () => {
+            await api.settings.save({ onboarded: true, language: picked }).catch(() => {});
+            appState.settings.onboarded = true;
+            overlay.classList.add('out');
+            setTimeout(() => overlay.remove(), 550);
+            route();
+          }
+        }, t('onb.start'))
+      ])
     ]);
   }
 
