@@ -692,65 +692,66 @@ table.data-table { width: 100%; border-collapse: collapse; }
 .splash.out { opacity: 0; pointer-events: none; }
 
 /* ================= First-run onboarding ================= */
-/* MUJI/Apple-quiet: one celadon accent (#6FA093), frameless feature row,
-   generous whitespace, no cards/shadows/gradients (the 3% accent radial
-   behind the title is the one sanctioned wash). */
+/* One complete page (not a card on a backdrop): #F5F7F6 canvas, a 55/45
+   split with a single 1px hairline divider, deep-celadon CTA, quiet text
+   links for language. No glow, no shadows, no floating panels. */
 .onboard {
   position: fixed; inset: 0; z-index: 9998;
   display: flex; align-items: center; justify-content: center;
-  background: #f7f9f8;
+  background: #f5f7f6;
   opacity: 0; transition: opacity .3s ease;
-}
-/* Soft accent halo behind the headline (3% wash) */
-.onboard::before {
-  content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(460px 320px at 50% 32%, rgba(111, 160, 147, 0.03), transparent 70%);
 }
 .onboard.in { opacity: 1; }
 .onboard.out { opacity: 0; pointer-events: none; }
-.onboard-card { width: min(760px, 92vw); text-align: center; position: relative; }
-.onboard-logo { display: block; margin: 0 auto 24px; }
-.onboard-welcome { font-size: 12px; letter-spacing: 0.32em; color: #93a29d; }
+.onboard-card { width: min(980px, 90vw); }
+/* Two-column skeleton: left brand block | right copy-flow figure */
+.ob-split { display: flex; align-items: center; }
+.ob-left { flex: 0 0 55%; min-width: 0; padding-right: 52px; border-right: 1px solid #e4eae7; }
+.ob-right { flex: 1; min-width: 0; padding-left: 52px; display: flex; justify-content: center; }
+.onboard-logo { display: block; margin: 0 0 22px; }
 /* Thin, wide-tracked wordmark — the quiet hero */
 .onboard-brand {
-  font-size: 48px; font-weight: 300; letter-spacing: 0.14em;
-  color: #2e3a37; margin-top: 14px;
+  font-size: 58px; font-weight: 300; letter-spacing: 0.16em;
+  color: #2e3a37;
 }
-.onboard-tagline { margin-top: 16px; font-size: 13px; color: #5c6b66; }
-/* Frameless three-column feature row with hairline separators */
-.onboard-feats {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  margin: 52px 0 0;
-}
-.onboard-feat { padding: 4px 28px; text-align: left; }
-.onboard-feat:first-child { padding-left: 0; }
-.onboard-feat + .onboard-feat { border-left: 1px solid #e4eae7; }
-.onboard-feat:last-child { padding-right: 0; }
-.onboard-feat svg { color: #6fa093; margin-bottom: 10px; }
-.onboard-feat .of-t { font-size: 13.5px; font-weight: 500; color: #2e3a37; margin-bottom: 6px; }
-.onboard-feat .of-b { font-size: 12.5px; line-height: 1.75; color: #93a29d; }
-/* Bottom row: weakened segmented language control + the single CTA */
-.onboard-foot {
-  display: flex; align-items: center; justify-content: center; gap: 24px;
-  margin-top: 56px;
-}
-.onboard-lang { display: flex; gap: 4px; align-items: center; margin: 0; }
-.onboard-lang .ol-label { font-size: 12px; color: #93a29d; margin-right: 8px; }
-.onboard-lang button {
-  padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px;
-  background: transparent; border: 1px solid transparent; color: #93a29d;
-  transition: color .12s, background .12s, border-color .12s;
-}
-.onboard-lang button:hover { color: #5c6b66; }
-.onboard-lang button.sel { background: #ffffff; border-color: #6fa093; color: #6fa093; font-weight: 600; }
+.onboard-tagline { margin-top: 14px; font-size: 13.5px; color: #5c6b66; letter-spacing: 0.02em; }
+/* Deep-celadon CTA — content-hugging width, flat, no shadow */
 .onboard-start {
-  height: 44px; padding: 0 44px; border-radius: 10px; border: 0; cursor: pointer;
-  font-size: 14.5px; font-weight: 600; letter-spacing: 0.02em;
-  background: #6fa093; color: #ffffff;
+  display: inline-flex; align-items: center; justify-content: center;
+  margin-top: 36px; height: 44px; padding: 0 32px;
+  border-radius: 10px; border: 0; cursor: pointer;
+  font-size: 14.5px; font-weight: 600; letter-spacing: 0.04em;
+  background: #4e7a6a; color: #ffffff;
   box-shadow: none;
   transition: background .12s;
 }
-.onboard-start:hover { background: #669387; }
+.onboard-start:hover { background: #487062; }
+/* Language as text links: 中文 · 日本語 · English */
+.ob-langs { margin-top: 24px; display: flex; align-items: baseline; gap: 10px; }
+.ob-langs .ol-label { font-size: 12px; color: #93a29d; }
+.ob-langs .ol-sep { color: #c6d2cd; font-size: 13px; }
+.ob-lang-link {
+  background: none; border: 0; border-radius: 0; padding: 2px 0;
+  font-size: 13px; color: #5c6b66; cursor: pointer;
+  transition: color .12s;
+}
+.ob-lang-link:hover { color: #4e7a6a; }
+.ob-lang-link.sel { color: #4e7a6a; border-bottom: 1.5px solid #6fa093; font-weight: 500; }
+/* Copy-flow figure */
+.ob-figure svg { width: 100%; max-width: 340px; height: auto; display: block; }
+/* Selling points compressed to one hairline-separated row of icon + phrase */
+.ob-features {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+  margin-top: 52px; padding-top: 26px;
+  border-top: 1px solid #e4eae7;
+}
+.ob-feat { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: #5c6b66; }
+.ob-feat svg { color: #6fa093; width: 18px; height: 18px; flex-shrink: 0; }
+@media (max-width: 880px) {
+  .ob-split { flex-direction: column; align-items: flex-start; }
+  .ob-left { border-right: 0; padding-right: 0; }
+  .ob-right { padding-left: 0; margin-top: 36px; }
+}
 
 /* ================= Copy progress panel (ring) ================= */
 /* A calm ring in the single accent colour; percentage centered. */

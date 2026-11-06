@@ -50,7 +50,14 @@ const ICON_PATHS = {
   disk: 'M4 6a8 3 0 1016 0 8 3 0 10-16 0M4 6v12a8 3 0 0016 0V6',
   list: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
   sparkle: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z',
-  bolt: 'M13 2L4 14h6l-1 8 9-12h-6z'
+  bolt: 'M13 2L4 14h6l-1 8 9-12h-6z',
+  // Industry-semantic marks (camera-card offload):
+  // sd — a memory card with contact fingers
+  sd: 'M7 4h7l6 6v10a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z M9 8v3M12 8v3M15 9v2',
+  // fanout — one source copying out to two targets
+  fanout: 'M4 12h5 M9 12l6-5h4 M19 7l-2.5-2 M19 7l-2.5 2 M9 12l6 5h4 M19 17l-2.5-2 M19 17l-2.5 2',
+  // hash — the xxHash checksum glyph
+  hash: 'M9 4L7 20M17 4l-2 16M5 9h15M4 15h15'
 };
 
 export function icon(name, size = 16, fill = false) {

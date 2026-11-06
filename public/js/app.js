@@ -1,12 +1,12 @@
 // eCOPY app bootstrap: splash, onboarding, i18n, routing, SSE, palette, notifications.
-import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=45';
-import { api } from './api.js?v=45';
-import { renderWizard, resetWizard } from './wizard.js?v=45';
-import { renderJobs } from './joblist.js?v=45';
-import { renderJob, destroyWarp } from './jobview.js?v=45';
-import { renderDisks } from './disksview.js?v=45';
-import { renderSettings } from './settingsview.js?v=45';
-import { t, setLang, LANG_OPTIONS } from './i18n.js?v=45';
+import { h, icon, clear, toast, getToastHistory, markAllRead, openModal, openDrawer } from './lib.js?v=46';
+import { api } from './api.js?v=46';
+import { renderWizard, resetWizard } from './wizard.js?v=46';
+import { renderJobs } from './joblist.js?v=46';
+import { renderJob, destroyWarp } from './jobview.js?v=46';
+import { renderDisks } from './disksview.js?v=46';
+import { renderSettings } from './settingsview.js?v=46';
+import { t, setLang, LANG_OPTIONS } from './i18n.js?v=46';
 
 const appState = { settings: {}, volumes: [], physical: [], jobs: [] };
 window.__appState = appState;
@@ -135,29 +135,30 @@ startSplash();
 
 function showOnboarding() {
   const feats = [
-    ['shield', 'onb.f1t', 'onb.f1b'],
-    ['play', 'onb.f2t', 'onb.f2b'],
-    ['doc', 'onb.f3t', 'onb.f3b']
+    ['sd', 'onb.f1t'],
+    ['fanout', 'onb.f2t'],
+    ['hash', 'onb.f3t']
   ];
   let picked = appState.settings.language || 'zh';
 
-  const langRow = h('div', { class: 'onboard-lang' }, [
-    h('span', { class: 'ol-label' }, t('onb.lang')),
-    ...LANG_OPTIONS.map(([code, label]) =>
-      h('button', {
-        class: code === picked ? 'sel' : '',
-        onClick: async (e) => {
-          picked = code;
-          langRow.querySelectorAll('button').forEach((b) => b.classList.remove('sel'));
-          e.target.classList.add('sel');
-          await api.settings.save({ language: code }).catch(() => {});
-          setLang(code);
-          applyStaticI18n();
-          rebuild();
-        }
-      }, label)
-    )
-  ]);
+  // Language as quiet text links: 中文 · 日本語 · English (current = accent underline)
+  const langNodes = [h('span', { class: 'ol-label' }, t('onb.lang'))];
+  LANG_OPTIONS.forEach(([code, label], idx) => {
+    if (idx > 0) langNodes.push(h('span', { class: 'ol-sep' }, '·'));
+    langNodes.push(h('button', {
+      class: 'ob-lang-link' + (code === picked ? ' sel' : ''),
+      onClick: async (e) => {
+        picked = code;
+        langRow.querySelectorAll('button').forEach((b) => b.classList.remove('sel'));
+        e.target.classList.add('sel');
+        await api.settings.save({ language: code }).catch(() => {});
+        setLang(code);
+        applyStaticI18n();
+        rebuild();
+      }
+    }, label));
+  });
+  const langRow = h('div', { class: 'ob-langs' }, langNodes);
 
   let card;
   function rebuild() {
@@ -167,32 +168,58 @@ function showOnboarding() {
   }
 
   function buildCard() {
-    return h('div', { class: 'onboard-card' }, [
-      // Geometric line-style mark: rounded square + check, accent stroke only
-      h('svg', { class: 'onboard-logo', width: '72', height: '72', viewBox: '0 0 32 32', html: "<rect x='2.5' y='2.5' width='27' height='27' rx='8' fill='none' stroke='#6FA093' stroke-width='2.2'/><path d='M10 16.5l4.3 4.3L22.5 11' stroke='#6FA093' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/>" }),
-      h('div', { class: 'onboard-welcome' }, t('onb.welcome')),
+    // Left column: mark → thin wordmark → slogan → CTA → language links.
+    // Right column: a thin-line copy-flow figure (card → xxHash → two targets).
+    const left = h('div', { class: 'ob-left' }, [
+      h('svg', { class: 'onboard-logo', width: '52', height: '52', viewBox: '0 0 32 32', html: "<rect x='2.5' y='2.5' width='27' height='27' rx='8' fill='none' stroke='#6FA093' stroke-width='2.2'/><path d='M10 16.5l4.3 4.3L22.5 11' stroke='#6FA093' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/>" }),
       h('div', { class: 'onboard-brand' }, 'eCOPY'),
       h('div', { class: 'onboard-tagline' }, t('onb.tagline')),
-      h('div', { class: 'onboard-feats' }, feats.map(([ic, tk, bk]) =>
-        h('div', { class: 'onboard-feat' }, [
-          icon(ic, 22),
-          h('div', { class: 'of-t' }, t(tk)),
-          h('div', { class: 'of-b' }, t(bk))
-        ])
-      )),
-      h('div', { class: 'onboard-foot' }, [
-        langRow,
-        h('button', {
-          class: 'onboard-start',
-          onClick: async () => {
-            await api.settings.save({ onboarded: true, language: picked }).catch(() => {});
-            appState.settings.onboarded = true;
-            overlay.classList.add('out');
-            setTimeout(() => overlay.remove(), 550);
-            route();
-          }
-        }, t('onb.start'))
-      ])
+      h('button', {
+        class: 'onboard-start',
+        onClick: async () => {
+          await api.settings.save({ onboarded: true, language: picked }).catch(() => {});
+          appState.settings.onboarded = true;
+          overlay.classList.add('out');
+          setTimeout(() => overlay.remove(), 550);
+          route();
+        }
+      }, t('onb.start')),
+      langRow
+    ]);
+    const right = h('div', { class: 'ob-right' }, [
+      h('div', {
+        class: 'ob-figure',
+        html: `<svg viewBox="0 0 340 220" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <!-- memory card -->
+          <rect x="18" y="56" width="66" height="108" rx="10" stroke="#93A29D" stroke-width="1.5"/>
+          <path d="M32 66v10M44 66v10M56 66v10" stroke="#93A29D" stroke-width="1.5"/>
+          <!-- card → checksum -->
+          <path d="M84 110h48" stroke="#6FA093" stroke-width="1.5"/>
+          <path d="M140 110l-11-6v12z" fill="#6FA093" stroke="none"/>
+          <!-- xxHash digest, monospace -->
+          <text x="170" y="92" font-family="Consolas, 'Cascadia Code', monospace" font-size="11" fill="#6FA093" text-anchor="middle">xxh64</text>
+          <text x="170" y="112" font-family="Consolas, 'Cascadia Code', monospace" font-size="12.5" fill="#4E7A6A" text-anchor="middle">7f3a 9c2e</text>
+          <text x="170" y="130" font-family="Consolas, 'Cascadia Code', monospace" font-size="12.5" fill="#4E7A6A" text-anchor="middle">b84d d15f</text>
+          <!-- checksum → two targets -->
+          <path d="M208 104l36 22" stroke="#6FA093" stroke-width="1.5"/>
+          <path d="M250 130l-12 1 4-12z" fill="#6FA093" stroke="none"/>
+          <path d="M208 96l36-22" stroke="#6FA093" stroke-width="1.5"/>
+          <path d="M250 70l-8 10 12 2z" fill="#6FA093" stroke="none"/>
+          <!-- two target drives -->
+          <rect x="252" y="56" width="70" height="44" rx="8" stroke="#93A29D" stroke-width="1.5"/>
+          <circle cx="266" cy="78" r="3" fill="#6FA093" stroke="none"/>
+          <path d="M280 78h30" stroke="#93A29D" stroke-width="1.5"/>
+          <rect x="252" y="120" width="70" height="44" rx="8" stroke="#93A29D" stroke-width="1.5"/>
+          <circle cx="266" cy="142" r="3" fill="#6FA093" stroke="none"/>
+          <path d="M280 142h30" stroke="#93A29D" stroke-width="1.5"/>
+        </svg>`
+      })
+    ]);
+    return h('div', { class: 'onboard-card' }, [
+      h('div', { class: 'ob-split' }, [left, right]),
+      h('div', { class: 'ob-features' }, feats.map(([ic, tk]) =>
+        h('div', { class: 'ob-feat' }, [icon(ic, 18), h('span', {}, t(tk))])
+      ))
     ]);
   }
 

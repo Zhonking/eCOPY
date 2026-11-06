@@ -1,8 +1,8 @@
 // Three-step offload wizard: sources → targets/template → review & start.
-import { h, icon, clear, formatBytes, eta, toast, openModal, protocolLabel, matchPhysicalForVolume } from './lib.js?v=45';
-import { api } from './api.js?v=45';
-import { openPathBrowser } from './browser.js?v=45';
-import { t } from './i18n.js?v=45';
+import { h, icon, clear, formatBytes, eta, toast, openModal, protocolLabel, matchPhysicalForVolume } from './lib.js?v=46';
+import { api } from './api.js?v=46';
+import { openPathBrowser } from './browser.js?v=46';
+import { t } from './i18n.js?v=46';
 
 let state = null;
 let starting = false;

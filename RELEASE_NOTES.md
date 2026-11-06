@@ -1,5 +1,44 @@
 # Release Notes
 
+## v2.2.2 — 2026-11-06
+
+### Changed
+
+- **欢迎页再优化：从居中卡片到完整分栏页面** — 功能、语言切换与文案保持不变：整页统一浅色 #F5F7F6，去掉光晕与任何卡片/描边/浮起感，内容直接排版在页面上，仅以 1px #E4EAE7 细线与留白分区；删除「欢迎使用」引导小字，标题上方保留线条 Logo mark
+- **左右分栏骨架** — 左栏 55%：Logo、300 细体 58px 宽字距 eCOPY 标题、slogan、开始按钮、语言切换；右栏 45%：全新**拷贝流程示意插画**（细线描边：存储卡 → 等宽字体 xxHash 校验串 → 两个目标盘，青瓷绿箭头与状态点点缀）
+- **主按钮强化** — 由灰绿 #7FA893 改**深青瓷绿 #4E7A6A 实底白字**（对比度达标），内容自适应宽度（左右 32px 内边距）、44px 高、10px 圆角、无阴影，hover 加深至 #487062
+- **语言切换弱化为文字链** — 中文 · 日本語 · English，当前项深主色文字 + 主色下划线
+- **卖点压缩** — 三栏说明压缩为分栏下方一行三组「小图标 + 短句」，图标从通用盾牌/播放/文档换成行业语义图标（存储卡 / 一分二拷贝 / 哈希校验）
+- 缓存号 v46
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 2.2.2.exe`（NSIS 安装版） | 78.4 MB | `A6A171CA9678051B1B698664FABEE7CDEC0B1A74C365F062B77110AC64CBE23E` |
+| `eCOPY 2.2.2.exe`（便携版） | 78.2 MB | `0202FB56FEA160550176066BC3AD537C52488882B361BAFE891BF3EE125315F5` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v2.2.2 — English
+
+### Changed
+
+- **Welcome page: from centered card to a full split page** — same features, language switching and copy: unified #F5F7F6 canvas, glow/cards/borders removed, content typeset directly on the page with 1px #E4EAE7 hairlines and whitespace; the "Welcome" intro line is gone, the line-logo mark sits above the wordmark
+- **55/45 split skeleton** — left: logo, thin 300-weight 58px wordmark, slogan, CTA, language links; right: a new **copy-flow figure** (thin-line illustration: memory card → monospace xxHash digest → two target drives, celadon arrows and status dots)
+- **Stronger CTA** — deep celadon #4E7A6A solid with white text (proper contrast), content-hugging width (32px side padding), 44px tall, 10px radius, no shadow, hover #487062
+- **Language as text links** — 中文 · 日本語 · English, current item in deep accent with an accent underline
+- **Selling points compressed** — one row of three icon + phrase pairs below the split; generic shield/play/doc icons replaced with industry-semantic marks (memory card / fan-out copy / hash)
+- Cache v46
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v2.2.1 — 2026-10-31
 
 ### Changed

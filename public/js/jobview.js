@@ -1,7 +1,7 @@
 // Job detail: per-source Safe gate, per-target legs, reports, logs.
-import { h, icon, clear, formatBytes, rate, eta, toast } from './lib.js?v=45';
-import { api } from './api.js?v=45';
-import { t } from './i18n.js?v=45';
+import { h, icon, clear, formatBytes, rate, eta, toast } from './lib.js?v=46';
+import { api } from './api.js?v=46';
+import { t } from './i18n.js?v=46';
 
 // Persistent progress panel across SSE redraws: the card element survives
 // redraws; only the phase/percent/bar/stats are updated in place. (The

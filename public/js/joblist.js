@@ -1,7 +1,7 @@
 // Jobs list view — history management (open, delete single, clear finished).
-import { h, icon, clear, formatBytes, toast, openModal } from './lib.js?v=45';
-import { api } from './api.js?v=45';
-import { t } from './i18n.js?v=45';
+import { h, icon, clear, formatBytes, toast, openModal } from './lib.js?v=46';
+import { api } from './api.js?v=46';
+import { t } from './i18n.js?v=46';
 
 const DELETABLE = (s) => s !== 'running' && s !== 'canceling';
 
