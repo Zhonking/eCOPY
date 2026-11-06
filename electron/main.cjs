@@ -27,6 +27,13 @@ function crashLog(kind, err) {
 }
 process.on('uncaughtException', (err) => crashLog('uncaughtException', err));
 process.on('unhandledRejection', (err) => crashLog('unhandledRejection', err));
+// A dead GPU process freezes painting (white window, OS "not responding")
+// until Chromium restarts it — same visible symptom as a resize hang.
+app.on('child-process-gone', (_e, details) => {
+  if (details.type === 'GPU' || details.type === 'Utility') {
+    crashLog('child-process-gone', JSON.stringify(details));
+  }
+});
 
 // Keep taskbar grouping/icon consistent with the packaged exe.
 app.setAppUserModelId('com.xuezhizhong.ecopy');
@@ -39,6 +46,16 @@ for (const sw of [
   'disable-backgrounding-occluded-windows',
   'disable-background-timer-throttling',
 ]) app.commandLine.appendSwitch(sw);
+
+// Windows' native window-occlusion tracking misfires around live resizes:
+// the compositor can mark the window occluded/stale and stop painting, so
+// the window goes white and the OS reports "not responding" until an input
+// nudges it. Disabling the occlusion calculation removes that whole class
+// of probabilistic hangs (both spellings cover old/new Chromium).
+app.commandLine.appendSwitch(
+  'disable-features',
+  'CalculateNativeWinOcclusion,NativeWindowOcclusionEnabled'
+);
 
 // In packaged builds, write .ecopy data to userData (install dir is read-only).
 if (app.isPackaged) {
@@ -101,7 +118,9 @@ function createWindow() {
     height: 900,
     minWidth: 1024,
     minHeight: 640,
-    backgroundColor: '#070b13',
+    // Match the v2.2 light theme — a stale dark fill here flashes black and
+    // forces a full-window repaint on every live resize.
+    backgroundColor: '#f7f8fa',
     title: 'eCOPY',
     icon: ICON,
     autoHideMenuBar: true,
@@ -118,6 +137,30 @@ function createWindow() {
     return { action: 'deny' };
   });
   win.loadURL(`http://localhost:${PORT}${nav}`);
+
+  // After a resize storm settles, force one repaint. Belt-and-braces with
+  // the occlusion switch above: a stale frame after geometry churn shows as
+  // a frozen window even though the renderer is alive.
+  let resizeTimer = null;
+  win.on('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (!win.isDestroyed()) win.webContents.invalidate();
+    }, 200);
+  });
+
+  // Diagnostics: probabilistic hangs used to leave no evidence. The
+  // renderer tells us when it stops/starts processing events, and any
+  // renderer/GPU death lands in crash.log with the reason.
+  win.webContents.on('unresponsive', () => {
+    crashLog('renderer-unresponsive', `main window unresponsive (url: ${win.webContents.getURL()})`);
+  });
+  win.webContents.on('responsive', () => {
+    crashLog('renderer-responsive', 'main window recovered');
+  });
+  win.webContents.on('render-process-gone', (_e, details) => {
+    crashLog('render-process-gone', JSON.stringify(details));
+  });
 
   // Closing the main window: if copy jobs are running, keep the app alive in
   // the background (tray + floating window) instead of killing the transfers.

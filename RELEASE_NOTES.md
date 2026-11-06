@@ -1,5 +1,42 @@
 # Release Notes
 
+## v2.2.3 — 2026-11-06
+
+### Fixed
+
+- **修复改变窗口大小后概率性无响应** — 三层根因一起处理：
+  1. **禁用 Windows 原生窗口遮挡跟踪**（`CalculateNativeWinOcclusion` / `NativeWindowOcclusionEnabled`）——Chromium 该特性在实时调整窗口大小时会误判窗口被遮挡/内容过期而停止合成，窗口白屏、系统报「未响应」，这是 Electron 在 Windows 上的已知问题，与本例「概率出现、resize 后出现」的症状完全吻合
+  2. **主窗口底色从残留的深蓝黑 #070b13 更正为浅色 #F7F8FA**（v2.2.0 换浅色 UI 时漏改）——resize 时合成器先用深色填底再重绘整页浅色内容，产生深色闪屏与全屏纹理重传
+  3. **resize 防抖强制重绘**——风暴平息后 200ms 调用一次 `webContents.invalidate()`，消除几何剧变后的残帧
+- **无响应诊断落地** — 新增 `renderer-unresponsive / responsive / render-process-gone / GPU 进程崩溃` 监听并写入 crash.log：若极端环境下仍出现卡死，%APPDATA%\ecopy\crash.log 将留下时间线证据，不再是无头案
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 2.2.3.exe`（NSIS 安装版） | 78.4 MB | `30BA44C2FEDCAE43B9CC4253E7495C3BD1D5680D9D48D4F7E4689D9197AE6A3B` |
+| `eCOPY 2.2.3.exe`（便携版） | 78.2 MB | `E9A744193C773E8479203D1BF2E9564E936727093C58229202D3C9EE68AD349B` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v2.2.3 — English
+
+### Fixed
+
+- **Probabilistic freeze after resizing the window** — three layers addressed at once:
+  1. **Windows native window-occlusion tracking disabled** (`CalculateNativeWinOcclusion` / `NativeWindowOcclusionEnabled`) — around live resizes Chromium can misjudge the window as occluded and stop compositing: white window, OS reports "not responding". A known Electron-on-Windows issue matching this bug's probabilistic, post-resize pattern exactly
+  2. **Main window background corrected from the leftover dark #070b13 to light #F7F8FA** (missed in the v2.2.0 light restyle) — during resizes the compositor filled dark first, then repainted the whole light page: dark flashes plus a full-screen texture churn
+  3. **Debounced force-repaint after resize storms** — one `webContents.invalidate()` 200ms after the last resize clears any stale frame
+- **Hang diagnostics** — new listeners for `renderer-unresponsive / responsive / render-process-gone / GPU process death` written to crash.log: if a hang ever reproduces in the wild, %APPDATA%\ecopy\crash.log now carries the timeline instead of leaving a mystery
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v2.2.2 — 2026-11-06
 
 ### Changed
