@@ -176,6 +176,12 @@ class Engine extends EventEmitter {
     // 1. source/target overlap
     const srcPaths = job.sources.map((s) => norm(s.path));
     const tgtPaths = job.targets.map((t) => norm(t.path));
+    if (new Set(srcPaths).size !== srcPaths.length) {
+      throw new Error('Duplicate source path: each card may only be added once');
+    }
+    if (new Set(tgtPaths).size !== tgtPaths.length) {
+      throw new Error('Duplicate target path: each destination must be unique');
+    }
     for (const s of srcPaths) {
       for (const t of tgtPaths) {
         if (s === t || s.startsWith(t + path.sep) || t.startsWith(s + path.sep)) {
@@ -325,30 +331,67 @@ class Engine extends EventEmitter {
   async #runSource(job, source, signal) {
     if (source.safe) return;
     const vars = renderTemplateVars(job, source);
+    const rendered = renderTemplate(job.template, vars);
+    // One reusable buffer per source avoids a 4 MiB allocation for every file.
+    // Sources still run independently according to sourceConcurrency.
+    const ioBuffer = Buffer.allocUnsafe(CHUNK);
 
-    // Resolve & create destination roots.
+    // Resolve & create destination roots. A bad target must not prevent the
+    // remaining targets from receiving and verifying their copies.
     for (const leg of Object.values(source.legs)) {
-      if (leg.status === 'verified') continue;
-      const target = job.targets.find((t) => t.id === leg.targetId);
-      const rendered = renderTemplate(job.template, vars);
-      leg.destRootAbs = path.join(target.path, rendered);
-      await mkdir(leg.destRootAbs, { recursive: true });
-      leg.status = 'copying';
+      if (leg.status === 'verified') {
+        leg.bytesCopied = source.totalBytes;
+        leg.speed = 0;
+        continue;
+      }
+
+      // Rebuild counters from durable per-file state. Partial .part files and
+      // interrupted writes are deliberately excluded on a retry.
+      leg.bytesCopied = 0;
+      leg.filesCopied = 0;
+      leg.filesVerified = 0;
+      leg.filesSkipped = 0;
       leg.samples = [];
+      leg.speed = 0;
+      for (const f of source.files) {
+        const st = f.targets[leg.targetId];
+        if (st.status === 'copied' || st.status === 'verified') {
+          leg.bytesCopied += f.size;
+          if (!st.preExisting) leg.filesCopied++;
+        }
+        if (st.status === 'verified') {
+          leg.filesVerified++;
+          if (st.preExisting || st.destRel) leg.filesSkipped++;
+        }
+      }
+
+      try {
+        const target = job.targets.find((t) => t.id === leg.targetId);
+        if (!target) throw new Error('Target no longer exists in job configuration');
+        leg.destRootAbs = path.join(target.path, rendered);
+        await mkdir(leg.destRootAbs, { recursive: true });
+        leg.status = 'copying';
+      } catch (e) {
+        leg.status = 'error';
+        leg.error = `Destination setup failed: ${e.message}`;
+        this.log(job, 'error', `${leg.targetLabel}: ${leg.error}`);
+      }
     }
     source.status = 'copying';
     this.emit('progress', job.id);
 
     for (const f of source.files) {
       if (signal.aborted) throw new AbortError('canceled');
-      // Per-source safety may have been reached already.
+      // Failed legs stay out of this run and are retried explicitly. Other
+      // targets continue, and already verified files are never read again.
       const activeLegs = Object.values(source.legs).filter(
-        (l) => l.status !== 'verified' && f.targets[l.targetId].status !== 'verified'
+        (l) => !['verified', 'error', 'canceled'].includes(l.status) &&
+          f.targets[l.targetId].status !== 'verified'
       );
       if (!activeLegs.length) continue;
 
       try {
-        await this.#processFile(job, source, f, activeLegs, signal);
+        await this.#processFile(job, source, f, activeLegs, signal, ioBuffer);
       } catch (e) {
         if (e instanceof AbortError) throw e;
         for (const leg of activeLegs) {
@@ -366,7 +409,7 @@ class Engine extends EventEmitter {
     for (const leg of Object.values(source.legs)) {
       if (leg.status === 'verified') continue;
       if (leg.status === 'error' || leg.status === 'canceled') continue;
-      await this.#verifyLeg(job, source, leg, signal);
+      await this.#verifyLeg(job, source, leg, signal, ioBuffer);
     }
 
     this.#evaluate(source);
@@ -386,137 +429,186 @@ class Engine extends EventEmitter {
     this.emit('progress', job.id);
   }
 
-  async #processFile(job, source, f, legs, signal) {
+  async #processFile(job, source, f, legs, signal, buf) {
     const copyingLegs = [];
+    const sourcePath = path.join(source.path, f.rel);
 
     for (const leg of legs) {
-      leg._altPath = null;
-      const finalPath = path.join(leg.destRootAbs, f.rel);
-      let exists = false;
-      let sameSize = false;
+      const fileState = f.targets[leg.targetId];
+      // Reuse an alternate name allocated by an earlier keep-both attempt;
+      // otherwise every retry would create another duplicate.
+      leg._altPath = fileState.destRel || null;
+      const targetRel = leg._altPath || f.rel;
+      const finalPath = path.join(leg.destRootAbs, targetRel);
       try {
-        const st = await fsStat(finalPath);
-        exists = true;
-        sameSize = st.size === f.size;
-      } catch {
-        /* missing */
-      }
-      if (exists && sameSize) {
-        f.targets[leg.targetId].preExisting = true;
-      } else if (exists && !sameSize) {
-        if (job.conflictPolicy === 'keep-both') {
-          leg._altPath = await this.#altName(leg.destRootAbs, f.rel);
-          copyingLegs.push(leg);
-        } else {
-          leg.status = 'error';
-          leg.error = `Target file exists with different size (${f.rel}) — refusing to overwrite`;
-          f.targets[leg.targetId].status = 'error';
-          this.log(job, 'error', `${leg.targetLabel}: ${leg.error}`);
+        let targetStat = null;
+        try {
+          targetStat = await fsStat(finalPath);
+        } catch (e) {
+          if (e.code !== 'ENOENT') throw e;
         }
-      } else copyingLegs.push(leg);
+
+        if (targetStat && !targetStat.isFile()) {
+          throw new Error(`Target path is not a file (${targetRel})`);
+        }
+        if (targetStat?.size === f.size) {
+          const alreadyCounted = fileState.status === 'copied' || fileState.status === 'verified';
+          fileState.preExisting = true;
+          fileState.status = 'copied';
+          // Same-size files still require checksum verification, but their
+          // bytes count toward copy progress exactly once.
+          if (!alreadyCounted) leg.bytesCopied += f.size;
+        } else {
+          // A previously copied file may have been removed or replaced while
+          // the job was offline. Discard its stale contribution before retry.
+          if (fileState.status === 'copied') {
+            leg.bytesCopied = Math.max(0, leg.bytesCopied - f.size);
+            if (!fileState.preExisting) leg.filesCopied = Math.max(0, leg.filesCopied - 1);
+            fileState.status = 'pending';
+          }
+          if (targetStat) {
+            if (job.conflictPolicy !== 'keep-both') {
+              throw new Error(`Target file exists with different size (${targetRel}) — refusing to overwrite`);
+            }
+            leg._altPath = await this.#altName(leg.destRootAbs, targetRel);
+          }
+          fileState.preExisting = false;
+          copyingLegs.push(leg);
+        }
+      } catch (e) {
+        leg.status = 'error';
+        leg.error = e.message;
+        fileState.status = 'error';
+        this.log(job, 'error', `${leg.targetLabel}: ${leg.error}`);
+      }
     }
+
+    // If every remaining target rejected the file, no source read is needed.
+    if (!legs.some((leg) => leg.status !== 'error')) return;
 
     const sourceHasher = createHasher(job.algorithm);
+    const handles = [];
     let srcFh = null;
+    let totalRead = 0;
+    let hashComplete = false;
 
-    if (copyingLegs.length) {
-      // Single source read → tee to every target, hashing as we go.
-      srcFh = await open(path.join(source.path, f.rel), 'r');
-      const handles = [];
-      for (const leg of copyingLegs) {
-        const destRel = leg._altPath || f.rel;
-        const partPath = path.join(leg.destRootAbs, `${destRel}.part`);
-        await mkdir(path.dirname(partPath), { recursive: true });
-        try {
-          await unlink(partPath);
-        } catch {
-          /* none */
+    try {
+      srcFh = await open(sourcePath, 'r');
+      if (copyingLegs.length) {
+        for (const leg of copyingLegs) {
+          const destRel = leg._altPath || f.rel;
+          const partPath = path.join(leg.destRootAbs, `${destRel}.part`);
+          try {
+            await mkdir(path.dirname(partPath), { recursive: true });
+            try {
+              await unlink(partPath);
+            } catch (e) {
+              if (e.code !== 'ENOENT') throw e;
+            }
+            const fh = await open(partPath, 'w');
+            handles.push({ leg, fh, partPath, finalRel: destRel, dead: false });
+            leg.status = 'copying';
+          } catch (e) {
+            leg.status = 'error';
+            leg.error = `Destination file setup failed: ${e.message}`;
+            f.targets[leg.targetId].status = 'error';
+            this.log(job, 'error', `${leg.targetLabel}: ${leg.error}`);
+          }
         }
-        const fh = await open(partPath, 'w');
-        handles.push({ leg, fh, partPath, finalRel: destRel });
-        leg.status = 'copying';
+        if (!handles.length && !legs.some((leg) => leg.status !== 'error')) {
+          this.log(job, 'error', `${f.rel}: every target failed before copying`);
+          return;
+        }
       }
 
-      const buf = Buffer.allocUnsafe(CHUNK);
-      try {
-        while (true) {
-          if (signal.aborted) throw new AbortError('canceled');
-          const { bytesRead } = await srcFh.read(buf);
-          if (bytesRead === 0) break;
-          sourceHasher.update(buf.subarray(0, bytesRead));
-          const writeResults = await Promise.allSettled(
-            handles.map(async (h) => {
-              await h.fh.write(buf.subarray(0, bytesRead));
-            })
-          );
-          const now = Date.now();
-          for (let i = 0; i < writeResults.length; i++) {
-            const h = handles[i];
-            if (writeResults[i].status === 'fulfilled') {
-              this.#bumpLeg(h.leg, bytesRead, now);
-            } else {
-              // Drop this leg out of the fan-out; others continue unaffected.
-              h.leg.status = 'error';
-              h.leg.error = writeResults[i].reason?.message || 'write failed';
-              f.targets[h.leg.targetId].status = 'error';
-              this.log(job, 'error', `${h.leg.targetLabel} write failed: ${h.leg.error}`);
-              h.dead = true;
-              h.fh.close().catch(() => {});
-              unlink(h.partPath).catch(() => {});
-            }
-          }
-          for (let i = handles.length - 1; i >= 0; i--) if (handles[i].dead) handles.splice(i, 1);
-          if (!handles.length) {
-            this.log(job, 'error', 'Every target failed — aborting file');
-            break;
+      // Single source read → tee to every healthy target, hashing as we go.
+      // With no copying left this same loop hashes the source for verification.
+      while (true) {
+        if (signal.aborted) throw new AbortError('canceled');
+        const { bytesRead } = await srcFh.read(buf);
+        if (bytesRead === 0) break;
+        totalRead += bytesRead;
+        sourceHasher.update(buf.subarray(0, bytesRead));
+
+        const writeResults = await Promise.allSettled(
+          handles.map((h) => writeAll(h.fh, buf.subarray(0, bytesRead)))
+        );
+        const now = Date.now();
+        for (let i = 0; i < writeResults.length; i++) {
+          const h = handles[i];
+          if (writeResults[i].status === 'fulfilled') {
+            this.#bumpLeg(h.leg, bytesRead, now);
+          } else {
+            // Drop only the failed target; all other writes continue.
+            h.leg.status = 'error';
+            h.leg.error = writeResults[i].reason?.message || 'write failed';
+            f.targets[h.leg.targetId].status = 'error';
+            this.log(job, 'error', `${h.leg.targetLabel} write failed: ${h.leg.error}`);
+            h.dead = true;
+            await h.fh.close().catch(() => {});
+            await unlink(h.partPath).catch(() => {});
           }
         }
-      } finally {
-        for (const h of handles) {
+        for (let i = handles.length - 1; i >= 0; i--) if (handles[i].dead) handles.splice(i, 1);
+        if (copyingLegs.length && !handles.length && !legs.some((leg) => leg.status !== 'error')) {
+          this.log(job, 'error', `${f.rel}: every target failed — aborting file`);
+          return;
+        }
+      }
+
+      if (totalRead !== f.size) {
+        throw new Error(`Source file size changed during copy (${f.rel}): expected ${f.size}, read ${totalRead}`);
+      }
+      f.sourceHash = sourceHasher.digest();
+      hashComplete = true;
+    } finally {
+      for (const h of handles) {
+        if (hashComplete && !h.dead) {
           try {
             await h.fh.sync();
-            await h.fh.close();
-          } catch {
-            /* may already be closed */
+          } catch (e) {
+            h.dead = true;
+            h.leg.status = 'error';
+            h.leg.error = `Flush failed: ${e.message}`;
+            f.targets[h.leg.targetId].status = 'error';
+            this.log(job, 'error', `${h.leg.targetLabel}: ${h.leg.error}`);
           }
         }
-        if (srcFh) await srcFh.close();
-      }
-
-      // Renames after handles closed (only for legs still alive).
-      for (const h of handles) {
         try {
-          await fsRename(
-            path.join(h.leg.destRootAbs, `${h.finalRel}.part`),
-            path.join(h.leg.destRootAbs, h.finalRel)
-          );
-          h.leg.filesCopied++;
-          f.targets[h.leg.targetId].status = 'copied';
-          if (h.finalRel !== f.rel) f.targets[h.leg.targetId].destRel = h.finalRel;
+          await h.fh.close();
         } catch (e) {
-          h.leg.status = 'error';
-          h.leg.error = `Finalize failed: ${e.message}`;
+          if (hashComplete && !h.dead) {
+            h.dead = true;
+            h.leg.status = 'error';
+            h.leg.error = `Close failed: ${e.message}`;
+            f.targets[h.leg.targetId].status = 'error';
+            this.log(job, 'error', `${h.leg.targetLabel}: ${h.leg.error}`);
+          }
         }
+        if (!hashComplete || h.dead) await unlink(h.partPath).catch(() => {});
       }
-    } else {
-      // Nothing to copy: still need a source hash for verification.
-      srcFh = await open(path.join(source.path, f.rel), 'r');
-      const buf = Buffer.allocUnsafe(CHUNK);
-      try {
-        while (true) {
-          const { bytesRead } = await srcFh.read(buf);
-          if (bytesRead === 0) break;
-          sourceHasher.update(buf.subarray(0, bytesRead));
-        }
-      } finally {
-        await srcFh.close();
-      }
+      if (srcFh) await srcFh.close();
     }
 
-    f.sourceHash = sourceHasher.digest();
+    // Rename only complete, flushed copies. Other targets remain independent.
+    for (const h of handles) {
+      if (h.dead) continue;
+      try {
+        await fsRename(h.partPath, path.join(h.leg.destRootAbs, h.finalRel));
+        h.leg.filesCopied++;
+        f.targets[h.leg.targetId].status = 'copied';
+        if (h.finalRel !== f.rel) f.targets[h.leg.targetId].destRel = h.finalRel;
+      } catch (e) {
+        h.leg.status = 'error';
+        h.leg.error = `Finalize failed: ${e.message}`;
+        f.targets[h.leg.targetId].status = 'error';
+        this.log(job, 'error', `${h.leg.targetLabel}: ${h.leg.error}`);
+        await unlink(h.partPath).catch(() => {});
+      }
+    }
   }
 
-  async #verifyLeg(job, source, leg, signal) {
+  async #verifyLeg(job, source, leg, signal, buf) {
     leg.status = 'verifying';
     this.emit('progress', job.id);
     for (const f of source.files) {
@@ -529,9 +621,9 @@ class Engine extends EventEmitter {
       try {
         const hasher = createHasher(job.algorithm);
         const fh = await open(finalPath, 'r');
-        const buf = Buffer.allocUnsafe(CHUNK);
         try {
           while (true) {
+            if (signal.aborted) throw new AbortError('canceled');
             const { bytesRead } = await fh.read(buf);
             if (bytesRead === 0) break;
             hasher.update(buf.subarray(0, bytesRead));
@@ -550,6 +642,7 @@ class Engine extends EventEmitter {
         if (st.preExisting || st.destRel) leg.filesSkipped++;
         this.#bumpLeg(leg, f.size, Date.now(), false);
       } catch (e) {
+        if (e instanceof AbortError) throw e;
         st.status = 'error';
         leg.status = 'error';
         leg.error = e.message;
@@ -560,6 +653,7 @@ class Engine extends EventEmitter {
     if (leg.status !== 'error') {
       leg.status = 'verified';
       leg.verifiedAt = new Date().toISOString();
+      leg.bytesCopied = source.totalBytes;
       leg.speed = 0;
     }
   }
@@ -666,6 +760,17 @@ class Engine extends EventEmitter {
 }
 
 // ---------- helpers ----------
+
+// FileHandle.write() is allowed to write fewer bytes than requested. Keep
+// writing until the whole chunk reaches this target before counting progress.
+async function writeAll(fh, buf) {
+  let offset = 0;
+  while (offset < buf.length) {
+    const { bytesWritten } = await fh.write(buf, offset, buf.length - offset);
+    if (!bytesWritten) throw new Error('Target write made no progress');
+    offset += bytesWritten;
+  }
+}
 
 function semaphore(size) {
   let active = 0;

@@ -1,5 +1,56 @@
 # Release Notes
 
+## v2.2.4 — 2026-11-14
+
+### Fixed
+
+- **拷卡写入可靠性提升** — 完整处理短写入；数据块全部写入后才累计进度；目标文件 flush、close 成功后才执行最终重命名；失败或中断时清理 `.part` 临时文件
+- **多目标故障隔离** — 单个目标的目录创建、文件初始化、写入或 finalize 失败时，其它目标继续拷贝与独立回读校验，不再整文件连带失败
+- **断点续拷与进度修正** — 重试时按持久化文件状态重建计数，剔除中断写入；目标文件离线被删除或替换后正确重拷；`keep-both` 复用已分配的备用文件名，不再反复生成 `_2`、`_3` 副本
+- **源文件变化保护** — 拷卡期间源文件实际读取大小与扫描记录不一致时立即报错，不生成 Safe to Format
+- **取消响应更及时** — 源文件哈希与目标回读校验均按 4 MiB 数据块检查取消状态，大文件无需等待整文件完成
+- **重复目标预检** — 不同写法但解析到同一位置的目标路径会在启动前拦截，避免并发写入同一 `.part` 文件
+
+### Changed
+
+- 每个源复用 4 MiB I/O 缓冲区，避免逐文件分配，降低大量小文件任务的 GC 压力
+- 已存在且同尺寸的文件仍须通过哈希校验，同时拷卡进度只累计一次；目标校验完成后进度明确到达 100%
+- 新增真实文件端到端回归测试，覆盖多目标、跨数据块写入、已存在文件、同名冲突重试与重复目标预检；`npm test` 可直接运行
+
+### Downloads
+
+| 文件 | 大小 | SHA256 |
+|---|---|---|
+| `eCOPY Setup 2.2.4.exe`（NSIS 安装版） | 78.4 MB | `E4ADED6BAFEE3398DC8754C7520BE278EFCF1AB4D34CF5D8122BB19FA55BED28` |
+| `eCOPY 2.2.4.exe`（便携版） | 78.2 MB | `B88047490A977747E221A67EE5A9DF23DDA4BB791C2D7BC9CD286C2A2434DD15` |
+
+> Windows 10/11 x64。SMART 温度监控需管理员权限运行（应用内可一键提权重启）。
+
+---
+
+## v2.2.4 — English
+
+### Fixed
+
+- **More reliable offload writes** — partial writes are completed before progress is counted; files are renamed only after a successful flush and close; failed or interrupted `.part` files are cleaned up
+- **Target failure isolation** — a destination setup, write, or finalize failure no longer stops healthy targets from copying and independently verifying their data
+- **Resume and progress corrections** — retry counters are rebuilt from persisted per-file state; files removed or replaced while offline are copied again; keep-both retries reuse their allocated alternate name
+- **Source mutation guard** — a source whose read size differs from its scanned size fails the job instead of producing Safe to Format
+- **More responsive cancellation** — source hashing and target readback now observe cancellation per 4 MiB chunk
+- **Duplicate-target preflight** — equivalent paths resolving to the same destination are rejected before copying starts
+
+### Changed
+
+- One reusable 4 MiB I/O buffer per source reduces allocation and GC pressure on large jobs
+- Same-size existing files still require checksum verification and now count toward copy progress exactly once
+- Added real-file end-to-end regression tests, available through `npm test`
+
+### Downloads
+
+See the table above for SHA256 checksums. Windows 10/11 x64; SMART temperature monitoring requires running as administrator (one-click elevated restart inside the app).
+
+---
+
 ## v2.2.3 — 2026-11-06
 
 ### Fixed

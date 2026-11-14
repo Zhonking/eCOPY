@@ -1,6 +1,6 @@
 {
   "name": "ecopy",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "eCOPY — professional camera-card offload, with multi-target verification and Safe-to-Format",
   "type": "module",
   "main": "electron/main.cjs",
@@ -11,7 +11,7 @@
     "dist": "electron-builder",
     "icons": "node scripts/make-icons.js",
     "make-cards": "node scripts/make-test-cards.js",
-    "test": "node scripts/selftest.js"
+    "test": "node --test scripts/engine.test.js"
   },
   "engines": {
     "node": ">=18.15"
